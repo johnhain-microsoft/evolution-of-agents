@@ -1,0 +1,171 @@
+// This bicep files deploys one resource group with the following resources:
+// 1. The AI Foundry dependencies, such as VNet and
+//    private endpoints for AI Search, Azure Storage and Cosmos DB
+// 2. The AI Foundry itself
+// 3. Two AI Projects with the capability hosts - in Foundry Standard mode
+targetScope = 'resourceGroup'
+
+param location string = resourceGroup().location
+param myIpAddress string = ''
+
+var resourceToken = toLower(uniqueString(resourceGroup().id, location))
+
+module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.0' = {
+  name: 'mgmtidentity-${uniqueString(deployment().name, location)}'
+  params: {
+    name: 'app-identity-${resourceToken}'
+    location: location
+  }
+}
+
+// vnet doesn't have to be in the same RG as the AI Services
+// each foundry needs it's own delegated subnet, projects inside of one Foundry share the subnet for the Agents Service
+module vnet './modules/networking/vnet.bicep' = {
+  name: 'vnet'
+  params: {
+    vnetName: 'project-vnet-${resourceToken}'
+    location: location
+  }
+}
+
+module ai_dependencies './modules/ai/ai-dependencies-with-dns.bicep' = {
+  name: 'ai-dependencies-with-dns'
+  params: {
+    peSubnetName: vnet.outputs.peSubnetName
+    vnetResourceId: vnet.outputs.virtualNetworkId
+    resourceToken: resourceToken
+    aiServicesName: '' // create AI serviced PE later
+    aiAccountNameResourceGroupName: ''
+    existingDnsZones: {
+      //disable-next-line no-hardcoded-env-urls
+      'privatelink.blob.${environment().suffixes.storage}': {
+        name: 'privatelink.blob.${environment().suffixes.storage}'
+        resourceGroupName: resourceGroup().name
+        subscriptionId: subscription().subscriptionId
+      }
+    }
+  }
+}
+
+// --------------------------------------------------------------------------------------------------------------
+// -- Log Analytics Workspace and App Insights ------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------
+module logAnalytics './modules/monitor/loganalytics.bicep' = {
+  name: 'log-analytics'
+  params: {
+    newLogAnalyticsName: 'log-analytics'
+    newApplicationInsightsName: 'app-insights'
+    location: location
+  }
+}
+
+module foundry './modules/ai/ai-foundry.bicep' = {
+  name: 'foundry-deployment'
+  params: {
+    managedIdentityId: '' // Use System Assigned Identity
+    name: 'ai-foundry-${resourceToken}'
+    location: location
+    appInsightsName: logAnalytics.outputs.applicationInsightsName
+    publicNetworkAccess: 'Enabled'
+    agentSubnetId: vnet.outputs.agentSubnetId // Use the first agent subnet
+    deployments: [
+      {
+        name: 'gpt-35-turbo'
+        properties: {
+          model: {
+            format: 'OpenAI'
+            name: 'gpt-35-turbo'
+            version: '0125'
+          }
+        }
+      }
+      {
+        name: 'gpt-4.1'
+        properties: {
+          model: {
+            format: 'OpenAI'
+            name: 'gpt-4.1'
+            version: '2025-04-14'
+          }
+        }
+        sku: {
+          name: 'GlobalStandard'
+          capacity: 20
+        }
+      }
+      {
+        name: 'gpt-5-mini'
+        properties: {
+          model: {
+            format: 'OpenAI'
+            name: 'gpt-5-mini'
+            version: '2025-08-07'
+          }
+        }
+        sku: {
+          name: 'GlobalStandard'
+          capacity: 20
+        }
+      }
+    ]
+  }
+}
+
+module project1 './modules/ai/ai-project-with-caphost.bicep' = {
+  name: 'ai-project-1-with-caphost-${resourceToken}'
+  params: {
+    foundryName: foundry.outputs.name
+    location: location
+    projectId: 1
+    aiDependencies: ai_dependencies.outputs.aiDependencies
+    managedIdentityId: identity.outputs.resourceId
+  }
+}
+
+module logicAppsDeployment './modules/function/function-app-with-plan.bicep' = {
+  name: 'logic-apps-deployment'
+  params: {
+    name: 'logic-apps-${resourceToken}'
+    resourceToken: resourceToken
+    managedIdentityId: identity.outputs.resourceId
+    location: location
+    logAnalyticsWorkspaceResourceId: logAnalytics.outputs.logAnalyticsWorkspaceId
+    applicationInsightResourceId: logAnalytics.outputs.applicationInsightsId
+    virtualNetworkResourceId: vnet.outputs.virtualNetworkId
+    logicAppsSubnetResourceId: vnet.outputs.logicAppsSubnetId
+    privateEndpointSubnetResourceId: vnet.outputs.peSubnetId
+    logicAppPrivateDnsZoneId: dnsSites.outputs.resourceId
+    myIpAddress: myIpAddress
+    tags: {
+      Environment: 'Production'
+      Project: 'EvolutionOfAgents'
+      'azd-service-name': 'workflows'
+    }
+  }
+}
+
+module dnsSites 'br/public:avm/res/network/private-dns-zone:0.7.1' = {
+  name: 'dns-sites'
+  params: {
+    name: 'privatelink.azurewebsites.net'
+    virtualNetworkLinks: [
+      {
+        virtualNetworkResourceId: vnet.outputs.virtualNetworkId
+      }
+    ]
+  }
+}
+
+output AZURE_OPENAI_CHAT_DEPLOYMENT_NAME string = 'gpt-4.1'
+output AZURE_AI_FOUNDRY_CONNECTION_STRING string = project1.outputs.foundry_connection_string
+output AZURE_AI_FOUNDRY_SUBSCRIPTION_ID string = foundry.outputs.subscriptionId
+output AZURE_AI_FOUNDRY_RESOURCE_GROUP string = foundry.outputs.resourceGroupName
+output AZURE_AI_FOUNDRY_NAME string = foundry.outputs.name
+output AZURE_AI_FOUNDRY_PROJECT_NAME string = project1.outputs.projectName
+output AZURE_TENANT_ID string = tenant().tenantId
+
+
+// # Logic app standard with workflows for Office 365
+output LOGIC_APP_SUBSCRIPTION_ID string = logicAppsDeployment.outputs.subscriptionId
+output LOGIC_APP_RESOURCE_GROUP string = logicAppsDeployment.outputs.logicAppResourceGroupName
+output LOGIC_APP_NAME string = logicAppsDeployment.outputs.logicAppName
