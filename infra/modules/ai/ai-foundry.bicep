@@ -126,6 +126,32 @@ resource account 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = if 
       }
     }
   }
+
+  // FIXED (Story 1.2): Added Bing grounding connection for web research in notebook 7
+  resource bingConnection 'connections@2025-04-01-preview' = {
+    name: 'BingGrounding'
+    properties: {
+      category: 'BingGrounding'
+      authType: 'ApiKey'
+      isSharedToAll: true
+      credentials: {}
+      metadata: {}
+    }
+  }
+
+  // FIXED (Story 1.2): Added Playwright connection for browser automation in notebook 7
+  resource playwrightConnection 'connections@2025-04-01-preview' = {
+    name: 'Playwright'
+    properties: {
+      category: 'ServerlessConnection'
+      authType: 'AAD'
+      isSharedToAll: true
+      metadata: {
+        Type: 'Playwright'
+        ApiVersion: '2024-07-01-preview'
+      }
+    }
+  }
 }
 
 @batchSize(1)

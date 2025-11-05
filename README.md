@@ -93,22 +93,67 @@ Explore each stage with hands-on Jupyter notebooks:
 
 ---
 
-## 📝 How to Use
+## 📝 Quick Start
 
-1. Clone the repo
-2. Install dependencies (`uv sync`)
-3. Create `.env` file based on `.env.example`
-4. Open notebooks in VS Code or Jupyter Lab
-5. Select kernel from `.venv/bin/python`
-4. Follow each notebook to see the evolution in action
+### Prerequisites
 
-### Setup for demo 7
+Before starting, ensure you have the following tools installed:
 
-Workbook for multi-agents requires additional steps:
-- Foundry has connection to bing grounding
-- Foundry has connection to [browser automation](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/browser-automation#setup)
-- Logic App Standard with 4 workflows:
-  - create_event, get_events, email_me, get_current_time
+- **Azure subscription** (required for infrastructure deployment)
+- **Azure Developer CLI (azd)**: [Install azd](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
+- **Azure CLI (az)**: [Install Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
+- **Python 3.11+**: [Download Python](https://www.python.org/downloads/)
+- **uv package manager**: [Install uv](https://docs.astral.sh/uv/getting-started/installation/)
+- **Git** (optional): For cloning the repository
+- **VS Code** (recommended): With Python and Jupyter extensions
+
+### Setup Steps
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Azure-Samples/azure-ai-foundry-agents.git
+   cd azure-ai-foundry-agents
+   ```
+
+2. **Authenticate with Azure**
+   ```bash
+   azd auth login
+   ```
+
+3. **Deploy infrastructure (one command!)**
+   ```bash
+   azd up
+   ```
+   This will:
+   - Deploy all Azure resources (AI Foundry, GPT models, Logic Apps, networking)
+   - Automatically create and populate your `.env` file
+   - Takes ~15-25 minutes
+
+4. **Install Python dependencies**
+   ```bash
+   uv sync
+   ```
+
+5. **Select Python kernel in VS Code**
+   - Open any notebook (e.g., `1-just-llm.ipynb`)
+   - Press `Ctrl+Shift+P` → `Python: Select Interpreter`
+   - Choose `.venv/bin/python` (Linux/Mac) or `.venv\Scripts\python.exe` (Windows)
+
+6. **Run notebooks 1-7 in sequence!** 🎉
+
+### What Gets Deployed
+
+The `azd up` command automatically provisions:
+- ✅ Azure AI Foundry Hub with AI Project
+- ✅ GPT-3.5-turbo, GPT-4.1, and GPT-5-mini deployments
+- ✅ Bing grounding connection for web research (notebook 7)
+- ✅ Playwright browser automation connection (notebook 7)
+- ✅ Azure Logic Apps Standard with 4 workflows (notebook 7):
+  - `create_event`, `get_events`, `email_me`, `get_current_time`
+- ✅ Azure AI Search for RAG (notebook 2)
+- ✅ VNet with agent subnet delegation
+- ✅ Log Analytics and Application Insights
+- ✅ All private endpoints and DNS zones
 
 ---
 
@@ -205,9 +250,9 @@ This command will:
 - Install all required packages from `pyproject.toml`
 - Lock dependencies in `uv.lock`
 
-### Step 4: Deploy Azure Infrastructure with Bicep
+### Step 4: Install Azure CLI Tools
 
-Deploy the required Azure resources using Azure Developer CLI (azd) and Bicep:
+Install the Azure Developer CLI and Azure CLI using Windows Package Manager:
 
 ```powershell
 # Install Azure Developer CLI (azd)
@@ -215,7 +260,15 @@ winget install Microsoft.Azd
 
 # Install Azure CLI if not already installed
 winget install Microsoft.AzureCLI
+```
 
+After installation, close and reopen PowerShell to refresh your environment.
+
+### Step 5: Deploy Azure Infrastructure
+
+Deploy all Azure resources with one command:
+
+```powershell
 # Authenticate with Azure
 azd auth login
 
@@ -223,43 +276,18 @@ azd auth login
 azd up
 ```
 
-**Note**: The deployment will take approximately 15-20 minutes to complete. The `azd up` command will create all necessary Azure resources including:
+**What happens during deployment:**
+- ⏱️ Takes approximately 15-25 minutes
+- 🏗️ Creates all Azure resources (AI Foundry, GPT models, Logic Apps, networking)
+- ✨ **Automatically creates and populates your `.env` file** (no manual steps!)
+
+The deployment provisions:
 - Azure AI Foundry hub and project
-- Azure OpenAI deployments
-- Azure Logic Apps Standard with workflows
-- Networking resources (VNet, subnets)
-- Monitoring and logging resources
-
-### Step 5: Configure Environment Variables
-
-After infrastructure deployment, create and configure your `.env` file:
-
-```powershell
-# Copy the example file to create .env
-Copy-Item .env.example .env
-
-# Edit the .env file using VS Code
-code .env
-```
-
-Populate the `.env` file with the output values from your Azure deployment:
-
-```powershell
-# View Azure deployment outputs
-azd env get-values
-```
-
-Copy the relevant values into your `.env` file. Required variables include:
-- `AZURE_AI_FOUNDRY_CONNECTION_STRING`
-- `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME`
-- `AZURE_AI_FOUNDRY_SUBSCRIPTION_ID`
-- `AZURE_AI_FOUNDRY_RESOURCE_GROUP`
-- `AZURE_AI_FOUNDRY_NAME`
-- `AZURE_AI_FOUNDRY_PROJECT_NAME`
-- `AZURE_TENANT_ID`
-- `LOGIC_APP_SUBSCRIPTION_ID`
-- `LOGIC_APP_RESOURCE_GROUP`
-- `LOGIC_APP_NAME`
+- GPT-3.5-turbo, GPT-4.1, and GPT-5-mini deployments
+- Bing grounding and Playwright browser automation connections
+- Azure Logic Apps Standard with 4 workflows
+- Networking resources (VNet, subnets, private endpoints)
+- Monitoring and logging resources (Log Analytics, App Insights)
 
 ### Step 6: Select Jupyter Kernel in VS Code
 
@@ -310,6 +338,165 @@ You're all set! Open the notebooks in VS Code and run them sequentially:
 - Open the `.ipynb` file in VS Code
 - Ensure the correct kernel is selected (see Step 6)
 - Click "Run All" or execute cells individually with `Shift+Enter`
+
+---
+
+## 🔧 Troubleshooting
+
+### Deployment Issues
+
+#### Deployment Fails or Times Out
+
+If `azd up` fails during deployment:
+
+```bash
+# Check deployment logs for specific errors
+azd deploy --debug
+
+# Clean up failed deployment and retry
+azd down --purge --force
+azd up
+```
+
+**Common causes:**
+- **Azure quota limits**: GPT-4 models may require quota increase. Check Azure Portal → Quotas
+- **Region availability**: Some model SKUs aren't available in all regions. Try different region during `azd up`
+- **Permissions**: Ensure you have Contributor role on the subscription
+
+#### .env File Not Created
+
+If the `.env` file wasn't created automatically after `azd up`:
+
+**Option 1: Run the automation script manually**
+
+Linux/Mac:
+```bash
+./scripts/populate_env.sh
+```
+
+Windows PowerShell:
+```powershell
+.\scripts\populate_env.ps1
+```
+
+**Option 2: Use the legacy script**
+
+Linux/Mac:
+```bash
+./scripts/setup_local.sh
+```
+
+Windows PowerShell:
+```powershell
+.\scripts\setup_local.ps1
+```
+
+**Option 3: Create .env manually**
+```bash
+# View deployment outputs
+azd env get-values
+
+# Copy output to .env file
+azd env get-values > .env
+```
+
+#### Azure CLI Authentication Issues
+
+If you see authentication errors:
+
+```bash
+# Clear cached credentials
+az account clear
+azd auth login
+
+# Or use device code flow
+azd auth login --use-device-code
+```
+
+### Notebook Execution Issues
+
+#### Kernel Not Found
+
+If VS Code can't find the Python kernel:
+
+1. Ensure virtual environment exists: `ls .venv/` (should show bin/ or Scripts/)
+2. Reinstall dependencies: `uv sync`
+3. Reload VS Code window: `Ctrl+Shift+P` → `Developer: Reload Window`
+4. Manually select interpreter: `Ctrl+Shift+P` → `Python: Select Interpreter` → `.venv/bin/python` or `.venv\Scripts\python.exe`
+
+#### Import Errors
+
+If notebooks fail with import errors:
+
+```bash
+# Reinstall dependencies
+uv sync
+
+# Verify installation
+uv pip list | grep azure-ai-agents
+```
+
+#### Connection Errors to Azure
+
+If notebooks can't connect to Azure services:
+
+1. **Check .env file exists and is populated**: `cat .env` (Linux/Mac) or `type .env` (Windows)
+2. **Verify Azure credentials**: `az account show`
+3. **Re-authenticate**: `azd auth login`
+4. **Check network access**: Ensure your IP is allowed (set in `azd up` via `myIpAddress` parameter)
+
+### Infrastructure Validation
+
+#### Verify Deployment Success
+
+Check all resources were created:
+
+```bash
+# List all resources in the deployment
+az resource list --resource-group <your-rg-name> --output table
+
+# Verify AI Foundry hub
+az cognitiveservices account list --resource-group <your-rg-name> --output table
+
+# Verify Logic Apps workflows
+az functionapp list --resource-group <your-rg-name> --output table
+```
+
+#### Check for Missing Connections
+
+In Azure Portal, navigate to your AI Foundry resource → Connections:
+- ✅ ApplicationInsights connection
+- ✅ BingGrounding connection
+- ✅ Playwright connection
+
+If any are missing, the Bicep deployment may need to be re-run.
+
+### Cleanup and Retry
+
+If you need to start over:
+
+```bash
+# Delete all Azure resources
+azd down --purge --force
+
+# Delete local environment state
+rm -rf .azure .env
+
+# Start fresh
+azd auth login
+azd up
+```
+
+**Note**: `azd down` will delete ALL resources in the resource group. Make sure you don't have other important resources in that group.
+
+### Getting Help
+
+If you're still stuck:
+
+1. **Check deployment logs**: Look in `.azure/` directory for detailed logs
+2. **Azure Portal**: Check Activity Log for deployment errors
+3. **GitHub Issues**: [Report an issue](https://github.com/Azure-Samples/azure-ai-foundry-agents/issues)
+4. **Azure Support**: For quota or subscription-specific issues
 
 ---
 
