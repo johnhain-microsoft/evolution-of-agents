@@ -10,7 +10,7 @@
 
 ## Epic Goal
 
-Expand the accessibility and usability of the Azure AI Foundry Agents educational project by providing comprehensive Windows developer support and fixing/enhancing Bicep infrastructure automation, enabling all developers to set up and run the 7 notebooks with minimal friction.
+Expand the accessibility and usability of the Azure AI Foundry Agents educational project by providing comprehensive Windows developer support, fixing/enhancing Bicep infrastructure automation, and creating a one-click installer for Windows users, enabling all developers to set up and run the 7 notebooks with minimal friction.
 
 ---
 
@@ -44,6 +44,8 @@ Expand the accessibility and usability of the Azure AI Foundry Agents educationa
 
 2. **Bicep Infrastructure Fixes & Automation Enhancement**: Fix broken/incomplete Bicep deployments and enhance automation so `azd up` handles everything (provisions all resources, auto-populates `.env` file), requiring only minimal manual setup.
 
+3. **Windows Installer**: Single executable installer that automates prerequisite installation, Azure configuration, and complete deployment process, providing a true one-click setup experience for Windows users.
+
 **How it integrates**:
 - Windows docs: Appended to existing README.md, no modification of existing sections
 - Bicep fixes: Updates to existing `/infra` directory modules to fix deployment issues
@@ -55,6 +57,7 @@ Expand the accessibility and usability of the Azure AI Foundry Agents educationa
 - `azd auth login` + `azd up` provides complete working environment (all resources + .env auto-populated)
 - All 7 notebooks run successfully after one-command deployment
 - Documentation clearly explains any unavoidable manual steps
+- Windows users can download and run a single installer executable to achieve complete working environment in under 30 minutes
 
 ---
 
@@ -86,6 +89,22 @@ Expand the accessibility and usability of the Azure AI Foundry Agents educationa
 - Tested deployment in clean Azure subscription with all 7 notebooks on Windows 11
 
 **Estimated Complexity**: Medium (infrastructure fixes + automation scripting, requires Azure testing)
+
+---
+
+### 3. Story 1.3: Windows Installer for One-Click Deployment
+
+**Brief Description**: Create a Windows executable installer that automatically checks for and installs prerequisites, handles Azure authentication, prompts for tenant/subscription configuration, and orchestrates the complete deployment process to provide a one-click setup experience for Windows users.
+
+**Key Deliverables**:
+- Windows executable installer (.exe or .msi) with GUI wizard interface
+- Automated prerequisite detection and installation (azd, az CLI, Python, uv)
+- Configuration prompts for Azure tenant/subscription/region
+- Integrated deployment workflow leveraging existing `azd up` automation
+- Start Menu shortcuts and uninstall script
+- Updated README with "Quick Install (Windows)" section
+
+**Estimated Complexity**: Medium-High (Windows installer development, GUI creation, comprehensive error handling)
 
 ---
 
@@ -124,10 +143,15 @@ Expand the accessibility and usability of the Azure AI Foundry Agents educationa
 
 - [ ] **Story 1.1 Completed**: Windows setup instructions merged into main branch
 - [ ] **Story 1.2 Completed**: Bicep fixes and automation enhancements merged into main branch
-- [ ] **All Stories Acceptance Criteria Met**: Every AC verified and checked off
-- [ ] **Integration Verification Passed**: All IVs for both stories completed
-- [ ] **Windows 11 Testing Passed**: All 7 notebooks run successfully on Windows 11 following new setup docs
+- [ ] **Story 1.3 Completed**: Windows installer created, tested, and release published
+- [ ] **All Stories Acceptance Criteria Met**: Every AC verified and checked off for all three stories
+- [ ] **Integration Verification Passed**: All IVs for all stories completed
+- [ ] **Windows 11 Testing Passed**: All 7 notebooks run successfully on Windows 11 using:
+  - Manual setup following documentation (Story 1.1)
+  - Command-line `azd up` workflow (Story 1.2)
+  - One-click installer (Story 1.3)
 - [ ] **Automated Deployment Testing Passed**: `azd up` completes successfully, `.env` auto-populated, all 7 notebooks work
+- [ ] **Installer Testing Passed**: Installer successfully deploys on clean Windows 10 and 11 systems
 - [ ] **Documentation Quality Verified**: All new docs are clear, accurate, and consistent with project style
 - [ ] **Code Review Approved**: All PRs reviewed and approved by maintainer(s)
 
@@ -144,12 +168,16 @@ Expand the accessibility and usability of the Azure AI Foundry Agents educationa
 - `scripts/populate_env.sh`: Bash script to auto-populate `.env` file
 - `scripts/populate_env.ps1`: PowerShell script to auto-populate `.env` file
 - `.env`: Auto-generated environment variables file (gitignored)
+- `installer/windows-installer.ps1`: PowerShell installer script with GUI (Story 1.3)
+- `installer/windows-installer.exe`: Packaged executable installer (Story 1.3)
+- `installer/uninstall.ps1`: Cleanup script for uninstallation (Story 1.3)
 - `docs/prd.md`: This epic's PRD (already created)
 - `docs/architecture.md`: Architecture document (already created)
 - `docs/architecture/*.md`: Architecture shards (already created)
 - `docs/stories/epic-1-*.md`: This epic file (already created)
-- `docs/stories/story-1.1-*.md`: Story 1 file (already created)
-- `docs/stories/story-1.2-*.md`: Story 2 file (already created - scope corrected)
+- `docs/stories/story-1.1-*.md`: Story 1.1 file (already created)
+- `docs/stories/story-1.2-*.md`: Story 1.2 file (already created - scope corrected)
+- `docs/stories/story-1.3-*.md`: Story 1.3 file (created)
 
 **Existing patterns to follow**:
 - README.md: Markdown structure with headers, code blocks, tables
@@ -170,14 +198,15 @@ Expand the accessibility and usability of the Azure AI Foundry Agents educationa
 ## Dependencies and Blockers
 
 ### Dependencies
-- None (stories are independent and can be implemented in parallel)
+- **Story 1.3 depends on Story 1.2**: Installer requires working `azd up` workflow from Story 1.2
+- Stories 1.1 and 1.2 are independent and can be implemented in parallel
 
 ### Recommended Sequence
-1. **Story 1.1 (Windows Setup)** → **Story 1.2 (Terraform)**: Logical user experience flow
-2. Or implement in parallel (no technical dependencies)
+1. **Story 1.1 (Windows Setup)** → **Story 1.2 (Bicep Automation)** → **Story 1.3 (Windows Installer)**
+2. Stories 1.1 and 1.2 can be implemented in parallel, but Story 1.3 should follow Story 1.2
 
 ### Blockers
-- None identified
+- Story 1.3 blocked until Story 1.2 is completed and validated
 
 ---
 
@@ -208,20 +237,24 @@ Expand the accessibility and usability of the Azure AI Foundry Agents educationa
 
 ## Acceptance Criteria (Epic-Level)
 
-1. ✅ **Epic Goal Achieved**: Windows 11 developers and Terraform users can successfully use the project
-2. ✅ **All Stories Delivered**: Both Story 1.1 and Story 1.2 completed with all ACs met
-3. ✅ **Quality Verified**: Documentation is clear for Windows 11, Terraform is validated in Azure
-4. ✅ **Windows 11 Functional**: All 7 notebooks run end-to-end on Windows 11 with both setup methods
-5. ✅ **Production Ready**: Enhancements are ready for community use
+1. ✅ **Epic Goal Achieved**: Windows 11 developers can successfully use the project with multiple setup options
+2. ✅ **All Stories Delivered**: Stories 1.1, 1.2, and 1.3 completed with all ACs met
+3. ✅ **Quality Verified**: Documentation is clear for Windows 11, `azd up` automation works reliably, installer provides seamless experience
+4. ✅ **Windows 11 Functional**: All 7 notebooks run end-to-end on Windows 11 with all three setup methods (manual, CLI automation, installer)
+5. ✅ **Production Ready**: Enhancements are ready for community use with multiple setup paths to suit different user preferences
 
 ---
 
 ## Notes
 
 - **Educational Project Context**: Enhancements prioritize clarity and accessibility over optimization
-- **Additive Only**: This epic is purely additive - no existing code or infrastructure is modified
+- **Additive Only**: This epic is purely additive - no existing code or infrastructure is modified (except Story 1.2 Bicep fixes)
 - **Platform Focus**: Windows 11 support; existing Linux/Mac support assumed to continue working (not actively tested in this epic)
 - **Testing Scope**: Pragmatic testing on available environment (Windows 11 + Azure) rather than exhaustive cross-platform testing
+- **Multiple Setup Paths**: Users can choose their preferred setup method:
+  - **Manual setup** (Story 1.1): Full control, follows documentation step-by-step
+  - **CLI automation** (Story 1.2): Power users, command-line workflow
+  - **One-click installer** (Story 1.3): Easiest for beginners, minimal technical knowledge required
 - **Future Considerations**: Community users on Linux/Mac can validate those platforms; CI/CD could add automated cross-platform testing in future
 
 ---
