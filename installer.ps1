@@ -1177,6 +1177,47 @@ function Set-AzureEnvironment {
     }
 }
 
+function New-AzureResourceGroup {
+    & $Global:UpdateStatus "Creating Azure resource group..."
+    & $Global:AppendOutput "Checking if resource group exists..."
+
+    Write-Log "Creating Azure resource group: $($Global:Config.ResourceGroup)"
+
+    try {
+        # Check if resource group exists
+        $rgExists = az group exists --name $Global:Config.ResourceGroup --subscription $Global:Config.SubscriptionId 2>&1
+
+        if ($rgExists -eq "true") {
+            & $Global:AppendOutput "Resource group '$($Global:Config.ResourceGroup)' already exists."
+            Write-Log "Resource group already exists"
+        }
+        else {
+            & $Global:AppendOutput "Creating resource group '$($Global:Config.ResourceGroup)' in $($Global:Config.Location)..."
+
+            az group create `
+                --name $Global:Config.ResourceGroup `
+                --location $Global:Config.Location `
+                --subscription $Global:Config.SubscriptionId 2>&1 | ForEach-Object {
+                & $Global:AppendOutput $_
+                Write-Log "az group create: $_"
+            }
+
+            if ($LASTEXITCODE -eq 0) {
+                & $Global:AppendOutput "[OK] Resource group created successfully"
+                Write-Log "Resource group created successfully"
+            }
+            else {
+                throw "Failed to create resource group. Exit code: $LASTEXITCODE"
+            }
+        }
+    }
+    catch {
+        & $Global:AppendOutput "[X] Resource group creation failed: $_"
+        Write-Log "Resource group creation failed: $_" "ERROR"
+        throw
+    }
+}
+
 function Invoke-InfrastructureDeployment {
     & $Global:UpdateStatus "Deploying Azure infrastructure (this will take 15-25 minutes)..."
     & $Global:AppendOutput "Starting infrastructure deployment..."
@@ -1306,6 +1347,7 @@ function Start-Installation {
             Invoke-AzureAuthentication
             Initialize-AzureEnvironment
             Set-AzureEnvironment
+            New-AzureResourceGroup
             Invoke-InfrastructureDeployment
             Install-PythonEnvironment
             $Global:InstallSuccess = Test-Installation
