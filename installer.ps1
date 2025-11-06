@@ -265,23 +265,29 @@ function Test-EnvironmentNameValid {
 #region GUI Functions
 
 function Show-WelcomeScreen {
+    Write-Log "Creating welcome screen form..."
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "Azure AI Foundry Agents Installer"
     $form.Size = New-Object System.Drawing.Size(600, 450)
     $form.StartPosition = "CenterScreen"
     $form.FormBorderStyle = "FixedDialog"
     $form.MaximizeBox = $false
+    Write-Log "Form created successfully"
 
     # Logo/Title
+    Write-Log "Creating title label..."
     $lblTitle = New-Object System.Windows.Forms.Label
     $lblTitle.Text = "Azure AI Foundry Agents"
     $lblTitle.Font = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)
     $lblTitle.Location = New-Object System.Drawing.Point(20, 20)
     $lblTitle.Size = New-Object System.Drawing.Size(560, 40)
     $lblTitle.TextAlign = "MiddleCenter"
+    Write-Log "Adding title to form..."
     $form.Controls.Add($lblTitle)
+    Write-Log "Title added successfully"
 
     # Description
+    Write-Log "Creating description textbox..."
     $lblDesc = New-Object System.Windows.Forms.TextBox
     $lblDesc.Multiline = $true
     $lblDesc.ReadOnly = $true
@@ -309,37 +315,50 @@ Please ensure you have:
 • Stable internet connection
 • ~2 GB free disk space
 "@
+    Write-Log "Adding description to form..."
     $form.Controls.Add($lblDesc)
+    Write-Log "Description added successfully"
 
     # Log file info
+    Write-Log "Creating log label..."
     $lblLog = New-Object System.Windows.Forms.Label
     $lblLog.Text = "Installation log: $LogFile"
     $lblLog.Font = New-Object System.Drawing.Font("Segoe UI", 8)
     $lblLog.ForeColor = [System.Drawing.Color]::Gray
     $lblLog.Location = New-Object System.Drawing.Point(40, 290)
     $lblLog.Size = New-Object System.Drawing.Size(520, 20)
+    Write-Log "Adding log label to form..."
     $form.Controls.Add($lblLog)
+    Write-Log "Log label added successfully"
 
     # Next button
+    Write-Log "Creating Next button..."
     $btnNext = New-Object System.Windows.Forms.Button
     $btnNext.Text = "Next"
     $btnNext.Size = New-Object System.Drawing.Size(100, 30)
     $btnNext.Location = New-Object System.Drawing.Point(370, 360)
     $btnNext.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    Write-Log "Adding Next button to form..."
     $form.Controls.Add($btnNext)
+    Write-Log "Next button added successfully"
 
     # Cancel button
+    Write-Log "Creating Cancel button..."
     $btnCancel = New-Object System.Windows.Forms.Button
     $btnCancel.Text = "Cancel"
     $btnCancel.Size = New-Object System.Drawing.Size(100, 30)
     $btnCancel.Location = New-Object System.Drawing.Point(480, 360)
     $btnCancel.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    Write-Log "Adding Cancel button to form..."
     $form.Controls.Add($btnCancel)
+    Write-Log "Cancel button added successfully"
 
     $form.AcceptButton = $btnNext
     $form.CancelButton = $btnCancel
 
+    Write-Log "Showing welcome screen dialog..."
     $result = $form.ShowDialog()
+    Write-Log "Dialog closed with result: $result"
     $form.Dispose()
 
     return ($result -eq [System.Windows.Forms.DialogResult]::OK)
@@ -1264,7 +1283,26 @@ try {
 }
 catch {
     Write-Log "Installer crashed: $_" "ERROR"
-    [System.Windows.Forms.MessageBox]::Show("Installer encountered a fatal error. Check log file: $LogFile", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    Write-Log "Error type: $($_.Exception.GetType().FullName)" "ERROR"
+    Write-Log "Stack trace: $($_.ScriptStackTrace)" "ERROR"
+    Write-Log "Inner exception: $($_.Exception.InnerException)" "ERROR"
+
+    $errorMessage = @"
+Installer encountered a fatal error:
+
+$_
+
+Please check the log file for details:
+$LogFile
+"@
+
+    # Try to show message box, but don't fail if GUI isn't working
+    try {
+        [System.Windows.Forms.MessageBox]::Show($errorMessage, "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+    catch {
+        Write-Host $errorMessage -ForegroundColor Red
+    }
 }
 finally {
     Write-Log "=========================================="
