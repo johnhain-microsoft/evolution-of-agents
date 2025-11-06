@@ -365,14 +365,17 @@ Please ensure you have:
 }
 
 function Show-PrerequisitesScreen {
+    Write-Log "Creating prerequisites screen form..."
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "Prerequisites Check"
     $form.Size = New-Object System.Drawing.Size(700, 600)
     $form.StartPosition = "CenterScreen"
     $form.FormBorderStyle = "FixedDialog"
     $form.MaximizeBox = $false
+    Write-Log "Prerequisites form created"
 
     # Title
+    Write-Log "Creating title label..."
     $lblTitle = New-Object System.Windows.Forms.Label
     $lblTitle.Text = "Checking Prerequisites"
     $lblTitle.Font = New-Object System.Drawing.Font("Segoe UI", 14, [System.Drawing.FontStyle]::Bold)
@@ -427,20 +430,33 @@ function Show-PrerequisitesScreen {
 
     # Check prerequisites
     function Update-PrerequisiteList {
+        Write-Log "Updating prerequisite list..."
         $listView.Items.Clear()
         $allInstalled = $true
 
         foreach ($key in $Global:Prerequisites.Keys) {
+            Write-Log "Checking prerequisite: $key"
             $prereq = $Global:Prerequisites[$key]
             $prereq.Installed = Test-Prerequisite $prereq.Command
 
             if ($prereq.Installed) {
                 $prereq.Version = Get-PrerequisiteVersion $prereq.Command
             }
+            else {
+                $prereq.Version = ""
+            }
 
+            Write-Log "Creating ListViewItem for $key (Installed: $($prereq.Installed), Version: $($prereq.Version))..."
             $item = New-Object System.Windows.Forms.ListViewItem($key)
+
+            Write-Log "Adding status SubItem..."
             $item.SubItems.Add($(if ($prereq.Installed) { "Installed" } else { "Missing" })) | Out-Null
-            $item.SubItems.Add($prereq.Version) | Out-Null
+
+            Write-Log "Adding version SubItem..."
+            $versionText = if ([string]::IsNullOrWhiteSpace($prereq.Version)) { "N/A" } else { $prereq.Version }
+            $item.SubItems.Add($versionText) | Out-Null
+
+            Write-Log "Adding action SubItem..."
             $item.SubItems.Add($(if ($prereq.Installed) { "OK" } else { "Needs installation" })) | Out-Null
 
             if ($prereq.Installed) {
@@ -451,10 +467,14 @@ function Show-PrerequisitesScreen {
                 $allInstalled = $false
             }
 
+            Write-Log "Adding item to ListView..."
             $listView.Items.Add($item) | Out-Null
+            Write-Log "Item added successfully"
         }
 
+        Write-Log "Setting btnNext.Enabled = $allInstalled"
         $btnNext.Enabled = $allInstalled
+        Write-Log "Prerequisite list update complete"
         return $allInstalled
     }
 
@@ -531,9 +551,20 @@ function Show-PrerequisitesScreen {
     })
 
     # Initial check
-    Update-PrerequisiteList
+    Write-Log "Running initial prerequisite check..."
+    try {
+        Update-PrerequisiteList
+        Write-Log "Initial check complete"
+    }
+    catch {
+        Write-Log "Error during initial prerequisite check: $_" "ERROR"
+        Write-Log "Stack trace: $($_.ScriptStackTrace)" "ERROR"
+        throw
+    }
 
+    Write-Log "Showing prerequisites dialog..."
     $result = $form.ShowDialog()
+    Write-Log "Prerequisites dialog closed with result: $result"
     $form.Dispose()
 
     return ($result -eq [System.Windows.Forms.DialogResult]::OK)
