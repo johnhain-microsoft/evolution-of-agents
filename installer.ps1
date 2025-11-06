@@ -805,9 +805,10 @@ function Show-ProgressScreen {
     $form.Text = "Installation Progress"
     $form.Size = New-Object System.Drawing.Size(700, 500)
     $form.StartPosition = "CenterScreen"
-    $form.FormBorderStyle = "FixedDialog"
-    $form.MaximizeBox = $false
-    $form.ControlBox = $true  # Allow X button to close
+    $form.FormBorderStyle = "Sizable"  # Allow resizing and minimizing
+    $form.MinimizeBox = $true
+    $form.MaximizeBox = $true
+    $form.ControlBox = $true
 
     # Track cancellation state
     $Global:CancellationRequested = $false
@@ -827,6 +828,8 @@ function Show-ProgressScreen {
     $progressBar.Size = New-Object System.Drawing.Size(660, 30)
     $progressBar.Style = "Marquee"
     $progressBar.MarqueeAnimationSpeed = 30  # Speed in milliseconds (lower = faster)
+    $progressBar.Visible = $true
+    $progressBar.Anchor = "Top,Left,Right"  # Allow horizontal resizing
     $form.Controls.Add($progressBar)
 
     # Status label
@@ -841,9 +844,13 @@ function Show-ProgressScreen {
     $txtOutput.Multiline = $true
     $txtOutput.ScrollBars = "Vertical"
     $txtOutput.ReadOnly = $true
+    $txtOutput.BackColor = [System.Drawing.Color]::White
+    $txtOutput.Cursor = [System.Windows.Forms.Cursors]::IBeam  # Show text cursor
     $txtOutput.Location = New-Object System.Drawing.Point(20, 130)
     $txtOutput.Size = New-Object System.Drawing.Size(660, 290)
     $txtOutput.Font = New-Object System.Drawing.Font("Consolas", 9)
+    $txtOutput.ShortcutsEnabled = $true  # Enable Ctrl+C
+    $txtOutput.Anchor = "Top,Left,Right,Bottom"  # Allow resizing
     $form.Controls.Add($txtOutput)
 
     # Cancel button (always enabled during installation)
@@ -852,6 +859,7 @@ function Show-ProgressScreen {
     $btnCancel.Size = New-Object System.Drawing.Size(100, 30)
     $btnCancel.Location = New-Object System.Drawing.Point(470, 430)
     $btnCancel.BackColor = [System.Drawing.Color]::LightCoral
+    $btnCancel.Anchor = "Right,Bottom"  # Stay in bottom-right when resized
     $btnCancel.Add_Click({
         $result = [System.Windows.Forms.MessageBox]::Show(
             "Are you sure you want to cancel the installation?`n`nThis will stop all running deployment processes.",
@@ -881,6 +889,7 @@ function Show-ProgressScreen {
     $btnClose.Size = New-Object System.Drawing.Size(100, 30)
     $btnClose.Location = New-Object System.Drawing.Point(580, 430)
     $btnClose.Enabled = $false
+    $btnClose.Anchor = "Right,Bottom"  # Stay in bottom-right when resized
     $btnClose.Add_Click({ $form.Close() })
     $form.Controls.Add($btnClose)
 
@@ -911,6 +920,7 @@ function Show-ProgressScreen {
         param([string]$Status)
         $lblStatus.Text = $Status
         $form.Refresh()
+        [System.Windows.Forms.Application]::DoEvents()  # Allow UI to update
     }
 
     $Global:AppendOutput = {
@@ -919,6 +929,7 @@ function Show-ProgressScreen {
         $txtOutput.SelectionStart = $txtOutput.TextLength
         $txtOutput.ScrollToCaret()
         $form.Refresh()
+        [System.Windows.Forms.Application]::DoEvents()  # Allow UI to update
     }
 
     $Global:EnableClose = {
