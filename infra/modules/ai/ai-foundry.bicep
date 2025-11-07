@@ -131,11 +131,12 @@ resource account 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = if 
   resource bingConnection 'connections@2025-04-01-preview' = {
     name: 'BingGrounding'
     properties: {
-      category: 'BingGrounding'
-      authType: 'ApiKey'
+      category: 'BingLLMSearch'
+      authType: 'None'
       isSharedToAll: true
-      credentials: {}
-      metadata: {}
+      metadata: {
+        ApiType: 'Azure'
+      }
     }
   }
 
@@ -143,11 +144,12 @@ resource account 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = if 
   resource playwrightConnection 'connections@2025-04-01-preview' = {
     name: 'Playwright'
     properties: {
-      category: 'ServerlessConnection'
-      authType: 'AAD'
+      category: 'Serverless'
+      authType: 'None'
       isSharedToAll: true
       metadata: {
         Type: 'Playwright'
+        ApiType: 'Azure'
         ApiVersion: '2024-07-01-preview'
       }
     }
