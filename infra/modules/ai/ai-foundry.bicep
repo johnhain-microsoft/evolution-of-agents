@@ -160,28 +160,10 @@ resource account 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = if 
     }
   }
 
-  // FIXED (Story 1.2): Added Playwright connection for browser automation in notebook 7
-  // NOTE: Serverless connections require authType: 'ApiKey' (validation requirement)
-  // Actual auth handled by Contributor role assignment on workspace (managed identity RBAC)
-  // Empty key placeholder - role assignment provides actual access
-  resource playwrightConnection 'connections@2025-04-01-preview' = if (!empty(playwrightWorkspaceId)) {
-    name: 'Playwright'
-    properties: {
-      category: 'Serverless'
-      target: playwrightWorkspaceEndpoint
-      authType: 'ApiKey'
-      isSharedToAll: true
-      credentials: {
-        key: ''
-      }
-      metadata: {
-        Type: 'Playwright'
-        ApiType: 'Azure'
-        ApiVersion: '2024-07-01-preview'
-        ResourceId: playwrightWorkspaceId
-      }
-    }
-  }
+  // NOTE: Playwright connection moved to post-deployment script
+  // Reason: Requires Entra ID access token that can't be generated in Bicep
+  // Post-deployment script uses: az account get-access-token + REST API to create connection
+  // See: infra/scripts/add-playwright-connection.sh
 }
 
 @batchSize(1)
