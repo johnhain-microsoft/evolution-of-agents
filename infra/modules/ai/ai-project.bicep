@@ -132,7 +132,7 @@ resource byoAoaiConnection 'Microsoft.CognitiveServices/accounts/projects/connec
 // https://github.com/azure-ai-foundry/foundry-samples/blob/main/samples/microsoft/infrastructure-setup/15-private-network-standard-agent-setup/README.md
 
 resource accountCapabilityHost 'Microsoft.CognitiveServices/accounts/capabilityHosts@2025-04-01-preview' = if (createHubCapabilityHost) {
-  name: 'capHost'
+  name: 'account-caphost-${uniqueString(resourceGroup().id, foundry_name)}'
   parent: foundry
   properties: {
     capabilityHostKind: 'Agents'

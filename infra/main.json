@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.38.33.27573",
-      "templateHash": "580196133235782020"
+      "templateHash": "18244240684439730369"
     }
   },
   "parameters": {
@@ -4520,7 +4520,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "10959282130251454584"
+              "templateHash": "422276558151038885"
             }
           },
           "definitions": {
@@ -4888,7 +4888,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.38.33.27573",
-                      "templateHash": "16515429383792183737"
+                      "templateHash": "16159802095381912026"
                     }
                   },
                   "parameters": {
@@ -5096,7 +5096,7 @@
                       "condition": "[parameters('createHubCapabilityHost')]",
                       "type": "Microsoft.CognitiveServices/accounts/capabilityHosts",
                       "apiVersion": "2025-04-01-preview",
-                      "name": "[format('{0}/{1}', parameters('foundry_name'), 'capHost')]",
+                      "name": "[format('{0}/{1}', parameters('foundry_name'), format('account-caphost-{0}', uniqueString(resourceGroup().id, parameters('foundry_name'))))]",
                       "properties": {
                         "capabilityHostKind": "Agents"
                       },
@@ -5188,7 +5188,7 @@
                     },
                     "capabilityHostName": {
                       "type": "string",
-                      "value": "capHost"
+                      "value": "[format('account-caphost-{0}', uniqueString(resourceGroup().id, parameters('foundry_name')))]"
                     },
                     "azureStorageConnection": {
                       "type": "string",
@@ -5491,7 +5491,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.38.33.27573",
-                      "templateHash": "10487083179345151925"
+                      "templateHash": "7077265810290988764"
                     }
                   },
                   "parameters": {
@@ -5519,7 +5519,7 @@
                     },
                     "projectCapHost": {
                       "type": "string",
-                      "defaultValue": "projcaphost"
+                      "defaultValue": "[format('project-caphost-{0}', uniqueString(resourceGroup().id, parameters('projectName')))]"
                     }
                   },
                   "variables": {
@@ -5946,7 +5946,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "587315117515006245"
+              "templateHash": "15584651002998803889"
             }
           },
           "parameters": {
@@ -11945,9 +11945,9 @@
               "dependsOn": [
                 "identity",
                 "[format('storagePrivateDns[{0}]', 0)]",
+                "[format('storagePrivateDns[{0}]', 3)]",
                 "[format('storagePrivateDns[{0}]', 2)]",
-                "[format('storagePrivateDns[{0}]', 1)]",
-                "[format('storagePrivateDns[{0}]', 3)]"
+                "[format('storagePrivateDns[{0}]', 1)]"
               ]
             },
             "storagePrivateDns": {
