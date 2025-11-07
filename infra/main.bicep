@@ -59,6 +59,37 @@ module logAnalytics './modules/monitor/loganalytics.bicep' = {
   }
 }
 
+// Bing Grounding Resource for web search
+resource bingAccount 'Microsoft.Bing/accounts@2025-05-01-preview' = {
+  name: 'bing-grounding-${resourceToken}'
+  location: 'global'
+  kind: 'Bing.Grounding'
+  sku: {
+    name: 'G1'
+  }
+  properties: {}
+}
+
+// Playwright Workspace for browser automation
+resource playwrightWorkspace 'Microsoft.AzurePlaywrightService/accounts@2024-02-01-preview' = {
+  name: 'playwright-${resourceToken}'
+  location: location
+  properties: {
+    regionalAffinity: 'Enabled'
+  }
+}
+
+// Role assignment for AI Foundry to access Playwright workspace
+resource playwrightRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(playwrightWorkspace.id, identity.outputs.principalId, 'Contributor')
+  scope: playwrightWorkspace
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c') // Contributor role
+    principalId: identity.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 module foundry './modules/ai/ai-foundry.bicep' = {
   name: 'foundry-deployment'
   params: {
@@ -69,6 +100,10 @@ module foundry './modules/ai/ai-foundry.bicep' = {
     publicNetworkAccess: 'Enabled'
     agentSubnetId: vnet.outputs.agentSubnetId // Use the first agent subnet
     myIpAddress: myIpAddress
+    bingAccountId: bingAccount.id
+    bingAccountEndpoint: bingAccount.properties.endpoint
+    playwrightWorkspaceId: playwrightWorkspace.id
+    playwrightWorkspaceName: playwrightWorkspace.name
     deployments: [
       {
         name: 'gpt-35-turbo'
@@ -123,6 +158,16 @@ module project1 './modules/ai/ai-project-with-caphost.bicep' = {
   }
 }
 
+// Office 365 connection for Logic Apps
+module office365Connection './modules/function/office365-connection.bicep' = {
+  name: 'office365-connection'
+  params: {
+    location: location
+    connectionName: 'office365'
+    managedIdentityId: identity.outputs.resourceId
+  }
+}
+
 module logicAppsDeployment './modules/function/function-app-with-plan.bicep' = {
   name: 'logic-apps-deployment'
   params: {
@@ -137,6 +182,7 @@ module logicAppsDeployment './modules/function/function-app-with-plan.bicep' = {
     privateEndpointSubnetResourceId: vnet.outputs.peSubnetId
     logicAppPrivateDnsZoneId: dnsSites.outputs.resourceId
     myIpAddress: myIpAddress
+    office365ConnectionRuntimeUrl: office365Connection.outputs.connectionRuntimeUrl
     tags: {
       Environment: 'Production'
       Project: 'EvolutionOfAgents'

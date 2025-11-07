@@ -11,6 +11,7 @@ param privateEndpointSubnetResourceId string
 param logicAppPrivateDnsZoneId string
 param virtualNetworkResourceId string
 param myIpAddress string = ''
+param office365ConnectionRuntimeUrl string = ''
 param tags object = {}
 
 // --------------------------------------------------------------------------------------------------------------
@@ -234,6 +235,10 @@ module logicApp 'br/public:avm/res/web/site:0.19.4' = {
             WEBSITE_NODE_DEFAULT_VERSION: '~22'
             AzureFunctionsJobHost__extensionBundle__id: 'Microsoft.Azure.Functions.ExtensionBundle.Workflows'
             AzureFunctionsJobHost__extensionBundle__version: '[1.*, 2.0.0)'
+            WORKFLOWS_SUBSCRIPTION_ID: subscription().subscriptionId
+            WORKFLOWS_RESOURCE_GROUP_NAME: resourceGroup().name
+            WORKFLOWS_LOCATION_NAME: location
+            OFFICE365_CONNECTION_RUNTIME_URL: office365ConnectionRuntimeUrl
           }
           storageAccountResourceId: storageAccount.outputs.resourceId
           storageAccountUseIdentityAuthentication: true

@@ -17,6 +17,10 @@ param sku object = {
 @description('Provide the IP address to allow access to the Azure Container Registry')
 param myIpAddress string = ''
 param managedIdentityId string = ''
+param bingAccountId string = ''
+param bingAccountEndpoint string = ''
+param playwrightWorkspaceId string = ''
+param playwrightWorkspaceName string = ''
 
 // --------------------------------------------------------------------------------------------------------------
 // Variables
@@ -56,6 +60,16 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-p
 }
 
 // --------------------------------------------------------------------------------------------------------------
+// Construct Playwright workspace endpoint
+var playwrightWorkspaceEndpoint = !empty(playwrightWorkspaceId)
+  ? 'wss://${location}.api.playwright.microsoft.com/playwrightworkspaces/${playwrightWorkspaceName}/browsers'
+  : ''
+
+// Reference Bing account to get API key
+resource bingAccount 'Microsoft.Bing/accounts@2025-05-01-preview' existing = if (!empty(bingAccountId)) {
+  name: last(split(bingAccountId, '/'))
+}
+
 resource existingAccount 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = if (useExistingService) {
   scope: resourceGroup(existing_CogServices_RG_Name, existing_CogServices_SubId)
   name: existing_CogServices_Name
@@ -128,29 +142,38 @@ resource account 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = if 
   }
 
   // FIXED (Story 1.2): Added Bing grounding connection for web research in notebook 7
-  resource bingConnection 'connections@2025-04-01-preview' = {
+  resource bingConnection 'connections@2025-04-01-preview' = if (!empty(bingAccountId)) {
     name: 'BingGrounding'
     properties: {
       category: 'BingLLMSearch'
-      authType: 'None'
+      target: bingAccountEndpoint
+      authType: 'ApiKey'
       isSharedToAll: true
+      credentials: {
+        key: !empty(bingAccountId) ? listKeys(bingAccountId, '2025-05-01-preview').key1 : ''
+      }
       metadata: {
         ApiType: 'Azure'
+        Location: location
       }
     }
   }
 
   // FIXED (Story 1.2): Added Playwright connection for browser automation in notebook 7
-  resource playwrightConnection 'connections@2025-04-01-preview' = {
+  // NOTE: Playwright uses managed identity authentication via role assignment
+  resource playwrightConnection 'connections@2025-04-01-preview' = if (!empty(playwrightWorkspaceId)) {
     name: 'Playwright'
     properties: {
       category: 'Serverless'
-      authType: 'None'
+      target: playwrightWorkspaceEndpoint
+      authType: 'ManagedIdentity'
       isSharedToAll: true
+      useWorkspaceManagedIdentity: true
       metadata: {
         Type: 'Playwright'
         ApiType: 'Azure'
         ApiVersion: '2024-07-01-preview'
+        ResourceId: playwrightWorkspaceId
       }
     }
   }
