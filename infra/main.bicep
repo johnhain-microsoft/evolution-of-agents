@@ -167,11 +167,12 @@ module project1 './modules/ai/ai-project-with-caphost.bicep' = {
 
 // Office 365 connection for Logic Apps
 // Uses the same managed identity as the Logic App for access policy
+// Connection name: office365v2 (V2 kind to support connectionRuntimeUrl)
 module office365Connection './modules/function/office365-connection.bicep' = {
   name: 'office365-connection'
   params: {
     location: location
-    connectionName: 'office365'
+    connectionName: 'office365v2'
     logicAppPrincipalId: identity.outputs.principalId
   }
 }

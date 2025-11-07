@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.38.33.27573",
-      "templateHash": "4726903290349474340"
+      "templateHash": "18358489405267748353"
     }
   },
   "parameters": {
@@ -5821,7 +5821,7 @@
             "value": "[parameters('location')]"
           },
           "connectionName": {
-            "value": "office365"
+            "value": "office365v2"
           },
           "logicAppPrincipalId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('mgmtidentity-{0}', uniqueString(deployment().name, parameters('location')))), '2025-04-01').outputs.principalId.value]"
@@ -5964,7 +5964,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "2729110201639467672"
+              "templateHash": "2122290946239081540"
             }
           },
           "parameters": {
@@ -11962,10 +11962,10 @@
               },
               "dependsOn": [
                 "identity",
-                "[format('storagePrivateDns[{0}]', 2)]",
-                "[format('storagePrivateDns[{0}]', 3)]",
                 "[format('storagePrivateDns[{0}]', 1)]",
-                "[format('storagePrivateDns[{0}]', 0)]"
+                "[format('storagePrivateDns[{0}]', 0)]",
+                "[format('storagePrivateDns[{0}]', 2)]",
+                "[format('storagePrivateDns[{0}]', 3)]"
               ]
             },
             "storagePrivateDns": {
