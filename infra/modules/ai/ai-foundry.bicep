@@ -161,15 +161,19 @@ resource account 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = if 
   }
 
   // FIXED (Story 1.2): Added Playwright connection for browser automation in notebook 7
-  // NOTE: Uses AAD (Entra ID) authentication via Contributor role assignment on workspace
-  // AI Foundry project's managed identity has Contributor access to Playwright workspace
+  // NOTE: Serverless connections require authType: 'ApiKey' (validation requirement)
+  // Actual auth handled by Contributor role assignment on workspace (managed identity RBAC)
+  // Empty key placeholder - role assignment provides actual access
   resource playwrightConnection 'connections@2025-04-01-preview' = if (!empty(playwrightWorkspaceId)) {
     name: 'Playwright'
     properties: {
       category: 'Serverless'
       target: playwrightWorkspaceEndpoint
-      authType: 'AAD'
+      authType: 'ApiKey'
       isSharedToAll: true
+      credentials: {
+        key: ''
+      }
       metadata: {
         Type: 'Playwright'
         ApiType: 'Azure'
