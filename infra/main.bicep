@@ -73,14 +73,15 @@ resource bingAccount 'Microsoft.Bing/accounts@2025-05-01-preview' = {
   properties: {}
 }
 
-// Playwright Workspace for browser automation
-// Note: Playwright is only available in limited regions (eastus, westus3, westeurope, eastasia)
-// Name must be alphanumeric only (no hyphens), start with letter, 3-64 chars
-resource playwrightWorkspace 'Microsoft.AzurePlaywrightService/accounts@2024-02-01-preview' = {
-  name: 'playwright${resourceToken}'
+// Playwright Workspaces for browser automation (Microsoft.LoadTestService)
+// Note: Available regions: eastus, westus3, eastasia, westeurope
+// Microsoft.AzurePlaywrightService is deprecated (retires 2026-03-08)
+resource playwrightWorkspace 'Microsoft.LoadTestService/playwrightWorkspaces@2025-09-01' = {
+  name: 'pw-${resourceToken}'
   location: playwrightLocation
   properties: {
     regionalAffinity: 'Enabled'
+    localAuth: 'Enabled'
   }
 }
 
@@ -165,11 +166,13 @@ module project1 './modules/ai/ai-project-with-caphost.bicep' = {
 }
 
 // Office 365 connection for Logic Apps
+// Uses the same managed identity as the Logic App for access policy
 module office365Connection './modules/function/office365-connection.bicep' = {
   name: 'office365-connection'
   params: {
     location: location
     connectionName: 'office365'
+    logicAppPrincipalId: identity.outputs.principalId
   }
 }
 

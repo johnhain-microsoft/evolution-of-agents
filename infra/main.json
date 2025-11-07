@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.38.33.27573",
-      "templateHash": "10434773265443271852"
+      "templateHash": "18093304075012562445"
     }
   },
   "parameters": {
@@ -38,19 +38,20 @@
       "properties": {}
     },
     {
-      "type": "Microsoft.AzurePlaywrightService/accounts",
-      "apiVersion": "2024-02-01-preview",
-      "name": "[format('playwright{0}', variables('resourceToken'))]",
+      "type": "Microsoft.LoadTestService/playwrightWorkspaces",
+      "apiVersion": "2025-09-01",
+      "name": "[format('pw-{0}', variables('resourceToken'))]",
       "location": "[parameters('playwrightLocation')]",
       "properties": {
-        "regionalAffinity": "Enabled"
+        "regionalAffinity": "Enabled",
+        "localAuth": "Enabled"
       }
     },
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
-      "scope": "[format('Microsoft.AzurePlaywrightService/accounts/{0}', format('playwright{0}', variables('resourceToken')))]",
-      "name": "[guid(subscription().subscriptionId, resourceGroup().id, format('playwright{0}', variables('resourceToken')), 'Contributor')]",
+      "scope": "[format('Microsoft.LoadTestService/playwrightWorkspaces/{0}', format('pw-{0}', variables('resourceToken')))]",
+      "name": "[guid(subscription().subscriptionId, resourceGroup().id, format('pw-{0}', variables('resourceToken')), 'Contributor')]",
       "properties": {
         "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
         "principalId": "[reference(resourceId('Microsoft.Resources/deployments', format('mgmtidentity-{0}', uniqueString(deployment().name, parameters('location')))), '2025-04-01').outputs.principalId.value]",
@@ -58,7 +59,7 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', format('mgmtidentity-{0}', uniqueString(deployment().name, parameters('location'))))]",
-        "[resourceId('Microsoft.AzurePlaywrightService/accounts', format('playwright{0}', variables('resourceToken')))]"
+        "[resourceId('Microsoft.LoadTestService/playwrightWorkspaces', format('pw-{0}', variables('resourceToken')))]"
       ]
     },
     {
@@ -4110,10 +4111,10 @@
             "value": "[reference(resourceId('Microsoft.Bing/accounts', format('bing-grounding-{0}', variables('resourceToken'))), '2025-05-01-preview').endpoint]"
           },
           "playwrightWorkspaceId": {
-            "value": "[resourceId('Microsoft.AzurePlaywrightService/accounts', format('playwright{0}', variables('resourceToken')))]"
+            "value": "[resourceId('Microsoft.LoadTestService/playwrightWorkspaces', format('pw-{0}', variables('resourceToken')))]"
           },
           "playwrightWorkspaceName": {
-            "value": "[format('playwright{0}', variables('resourceToken'))]"
+            "value": "[format('pw-{0}', variables('resourceToken'))]"
           },
           "playwrightLocation": {
             "value": "[parameters('playwrightLocation')]"
@@ -4503,7 +4504,7 @@
       "dependsOn": [
         "[resourceId('Microsoft.Bing/accounts', format('bing-grounding-{0}', variables('resourceToken')))]",
         "[resourceId('Microsoft.Resources/deployments', 'log-analytics')]",
-        "[resourceId('Microsoft.AzurePlaywrightService/accounts', format('playwright{0}', variables('resourceToken')))]",
+        "[resourceId('Microsoft.LoadTestService/playwrightWorkspaces', format('pw-{0}', variables('resourceToken')))]",
         "[resourceId('Microsoft.Resources/deployments', 'vnet')]"
       ]
     },
@@ -5822,6 +5823,9 @@
           },
           "connectionName": {
             "value": "office365"
+          },
+          "logicAppPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('mgmtidentity-{0}', uniqueString(deployment().name, parameters('location')))), '2025-04-01').outputs.principalId.value]"
           }
         },
         "template": {
@@ -5831,7 +5835,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "1725706602318397676"
+              "templateHash": "4983179469477107998"
             }
           },
           "parameters": {
@@ -5841,20 +5845,42 @@
             },
             "connectionName": {
               "type": "string"
+            },
+            "logicAppPrincipalId": {
+              "type": "string"
             }
           },
           "resources": [
             {
               "type": "Microsoft.Web/connections",
-              "apiVersion": "2016-06-01",
+              "apiVersion": "2018-07-01-preview",
               "name": "[parameters('connectionName')]",
               "location": "[parameters('location')]",
+              "kind": "V2",
               "properties": {
                 "displayName": "Office 365 Connection",
                 "api": {
                   "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'office365')]"
                 }
               }
+            },
+            {
+              "type": "Microsoft.Web/connections/accessPolicies",
+              "apiVersion": "2016-06-01",
+              "name": "[format('{0}/{1}', parameters('connectionName'), guid(resourceId('Microsoft.Web/connections', parameters('connectionName')), parameters('logicAppPrincipalId')))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "principal": {
+                  "type": "ActiveDirectory",
+                  "identity": {
+                    "tenantId": "[subscription().tenantId]",
+                    "objectId": "[parameters('logicAppPrincipalId')]"
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', parameters('connectionName'))]"
+              ]
             }
           ],
           "outputs": {
@@ -5868,11 +5894,14 @@
             },
             "connectionRuntimeUrl": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Web/connections', parameters('connectionName')), '2016-06-01', 'full').properties.connectionRuntimeUrl]"
+              "value": "[reference(resourceId('Microsoft.Web/connections', parameters('connectionName')), '2018-07-01-preview', 'full').properties.connectionRuntimeUrl]"
             }
           }
         }
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('mgmtidentity-{0}', uniqueString(deployment().name, parameters('location'))))]"
+      ]
     },
     {
       "type": "Microsoft.Resources/deployments",
