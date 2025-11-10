@@ -192,6 +192,9 @@ module logicAppsDeployment './modules/function/function-app-with-plan.bicep' = {
     logicAppPrivateDnsZoneId: dnsSites.outputs.resourceId
     myIpAddress: myIpAddress
     office365ConnectionRuntimeUrl: office365Connection.outputs.connectionRuntimeUrl
+    aiProjectEndpoint: project1.outputs.foundry_connection_string
+    aiFoundryName: foundry.outputs.name
+    aiProjectName: project1.outputs.projectName
     tags: {
       Environment: 'Production'
       Project: 'EvolutionOfAgents'

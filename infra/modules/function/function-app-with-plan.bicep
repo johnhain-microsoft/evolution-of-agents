@@ -12,6 +12,9 @@ param logicAppPrivateDnsZoneId string
 param virtualNetworkResourceId string
 param myIpAddress string = ''
 param office365ConnectionRuntimeUrl string = ''
+param aiProjectEndpoint string = ''
+param aiFoundryName string = ''
+param aiProjectName string = ''
 param tags object = {}
 
 // --------------------------------------------------------------------------------------------------------------
@@ -239,6 +242,9 @@ module logicApp 'br/public:avm/res/web/site:0.19.4' = {
             WORKFLOWS_RESOURCE_GROUP_NAME: resourceGroup().name
             WORKFLOWS_LOCATION_NAME: location
             OFFICE365_CONNECTION_RUNTIME_URL: office365ConnectionRuntimeUrl
+            AI_PROJECT_ENDPOINT: aiProjectEndpoint
+            AI_FOUNDRY_NAME: aiFoundryName
+            AI_PROJECT_NAME: aiProjectName
           }
           storageAccountResourceId: storageAccount.outputs.resourceId
           storageAccountUseIdentityAuthentication: true
