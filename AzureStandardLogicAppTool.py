@@ -107,20 +107,23 @@ class AzureStandardLogicAppTool:
         ]
 
         # Use /invoke as the path, as in the example
+        # Normalize workflow name for consistent naming across tool name and operationId
+        normalized_name = workflow_name.replace("_", "-").replace(" ", "-")
+
         openapi = {
             "openapi": "3.0.3",
             "info": {
                 "version": "1.0.0.0",
-                "title": workflow_name.replace("-", "_").replace(" ", "_"),
-                "description": workflow_name.replace("-", "_").replace(" ", "_"),
+                "title": normalized_name,
+                "description": f"Logic App workflow: {workflow_name}",
             },
             "servers": [{"url": server_url or "https://your-logic-app-url/paths"}],
             "security": [{"sig": []}],
             "paths": {
                 "/invoke": {
                     "post": {
-                        "description": workflow_name.replace("_", "-"),
-                        "operationId": "When_a_HTTP_request_is_received-invoke",
+                        "description": f"Invoke {workflow_name} Logic App workflow",
+                        "operationId": f"{normalized_name}-invoke",
                         "parameters": parameters,
                         "responses": {
                             "200": {
@@ -326,11 +329,13 @@ def create_logic_app_tools(
         )
 
         # 6. Create OpenAPI tool and invoke
+        # Use normalized name (hyphens) to match operationId format
+        tool_name = workflow_name.replace("_", "-").replace(" ", "-")
         openapi_tool = OpenApiTool(
-            name=workflow_name.replace("-", "_").replace(" ", "_"),
+            name=tool_name,
             spec=openapi_spec,
             auth=auth,
-            description=f"{workflow_name} OpenAPI tool",
+            description=f"{workflow_name} Logic App workflow tool",
             # allowed_tools=[],  # Optional: specify allowed tools
         )
         openapi_tools.append(openapi_tool)

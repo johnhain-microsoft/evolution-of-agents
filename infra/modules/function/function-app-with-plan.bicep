@@ -249,6 +249,7 @@ module logicApp 'br/public:avm/res/web/site:0.19.4' = {
             AI_PROJECT_ENDPOINT: aiProjectEndpoint
             AI_FOUNDRY_NAME: aiFoundryName
             AI_PROJECT_NAME: aiProjectName
+            AZURE_CLIENT_ID: '' // Empty string explicitly specifies system-assigned identity for agent connections
           }
           storageAccountResourceId: storageAccount.outputs.resourceId
           storageAccountUseIdentityAuthentication: true

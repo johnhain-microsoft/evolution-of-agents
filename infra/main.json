@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.38.33.27573",
-      "templateHash": "17769562644138934809"
+      "templateHash": "8572648211071680444"
     }
   },
   "parameters": {
@@ -4520,7 +4520,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "11501935927040278907"
+              "templateHash": "3498409579440378109"
             }
           },
           "definitions": {
@@ -4888,7 +4888,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.38.33.27573",
-                      "templateHash": "3763431729098872762"
+                      "templateHash": "11025071991952176630"
                     }
                   },
                   "parameters": {
@@ -4971,7 +4971,10 @@
                     },
                     "createHubCapabilityHost": {
                       "type": "bool",
-                      "defaultValue": false
+                      "defaultValue": false,
+                      "metadata": {
+                        "description": "Deprecated: Account-level CapabilityHost removed to prevent 409 Conflict. Kept for backwards compatibility."
+                      }
                     },
                     "usingFoundryAiConnection": {
                       "type": "bool",
@@ -5780,6 +5783,363 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
+      "name": "logic-app-ai-foundry-role-assignment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "accountName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'foundry-deployment'), '2025-04-01').outputs.name.value]"
+          },
+          "projectName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('ai-project-1-with-caphost-{0}', variables('resourceToken'))), '2025-04-01').outputs.projectName.value]"
+          },
+          "projectPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'logic-apps-deployment'), '2025-04-01').outputs.logicAppSystemAssignedPrincipalId.value]"
+          },
+          "roleName": {
+            "value": "Azure AI Project Manager"
+          },
+          "servicePrincipalType": {
+            "value": "ServicePrincipal"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "languageVersion": "2.0",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.38.33.27573",
+              "templateHash": "12021413495846824322"
+            }
+          },
+          "definitions": {
+            "_1.aiDependenciesType": {
+              "type": "object",
+              "properties": {
+                "aiSearch": {
+                  "$ref": "#/definitions/_1.dependencyInfoType",
+                  "metadata": {
+                    "description": "The AI Search Service name."
+                  }
+                },
+                "azureStorage": {
+                  "$ref": "#/definitions/_1.dependencyInfoType",
+                  "metadata": {
+                    "description": "The Azure Storage Account name."
+                  }
+                },
+                "cosmosDB": {
+                  "$ref": "#/definitions/_1.dependencyInfoType",
+                  "metadata": {
+                    "description": "The Cosmos DB Account name."
+                  }
+                }
+              },
+              "metadata": {
+                "description": "The AI dependencies output type containing information about the AI Search, Azure Storage, and Cosmos DB resources.",
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "../types/types.bicep"
+                }
+              }
+            },
+            "_1.CognitiveServicesRoleAssignmentsType": {
+              "type": "string",
+              "allowedValues": [
+                "Azure AI Account Owner",
+                "Azure AI Project Manager",
+                "Azure AI User",
+                "Cognitive Services Contributor",
+                "Cognitive Services OpenAI User",
+                "Cognitive Services User",
+                "Reader"
+              ],
+              "metadata": {
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "../types/types.bicep"
+                }
+              }
+            },
+            "_1.dependencyInfoType": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "The name of the resource."
+                  }
+                },
+                "resourceId": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "The resource ID."
+                  }
+                },
+                "resourceGroupName": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "The resource group name where the resource is deployed."
+                  }
+                },
+                "subscriptionId": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "The subscription ID where the resource is deployed."
+                  }
+                }
+              },
+              "metadata": {
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "../types/types.bicep"
+                }
+              }
+            },
+            "_1.DnsZonesType": {
+              "type": "object",
+              "properties": {
+                "privatelink.services.ai.azure.com": {
+                  "$ref": "#/definitions/_1.DNSZoneType",
+                  "nullable": true
+                },
+                "privatelink.openai.azure.com": {
+                  "$ref": "#/definitions/_1.DNSZoneType",
+                  "nullable": true
+                },
+                "privatelink.cognitiveservices.azure.com": {
+                  "$ref": "#/definitions/_1.DNSZoneType",
+                  "nullable": true
+                },
+                "privatelink.search.windows.net": {
+                  "$ref": "#/definitions/_1.DNSZoneType",
+                  "nullable": true
+                },
+                "privatelink.blob.core.windows.net": {
+                  "$ref": "#/definitions/_1.DNSZoneType",
+                  "nullable": true
+                },
+                "privatelink.documents.azure.com": {
+                  "$ref": "#/definitions/_1.DNSZoneType",
+                  "nullable": true
+                },
+                "privatelink.keyvault.azure.com": {
+                  "$ref": "#/definitions/_1.DNSZoneType",
+                  "nullable": true
+                }
+              },
+              "metadata": {
+                "description": "The type for DNS zones used in the AI dependencies module.",
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "../types/types.bicep"
+                }
+              }
+            },
+            "_1.DNSZoneType": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "The name of the private DNS zone."
+                  }
+                },
+                "resourceGroupName": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "The resource group name where the private DNS zone is deployed."
+                  }
+                },
+                "subscriptionId": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "The subscription ID where the private DNS zone is deployed."
+                  }
+                }
+              },
+              "metadata": {
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "../types/types.bicep"
+                }
+              }
+            },
+            "_1.FoundryRoleAssignmentsType": {
+              "type": "object",
+              "properties": {
+                "foundry": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/_1.CognitiveServicesRoleAssignmentsType"
+                  }
+                },
+                "project": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/_1.CognitiveServicesRoleAssignmentsType"
+                  }
+                },
+                "aiServices": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/_1.CognitiveServicesRoleAssignmentsType"
+                  }
+                },
+                "aiSearch": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/_1.SearchRoleAssignmentsType"
+                  }
+                },
+                "storage": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/_1.StorageRoleAssignmentsType"
+                  }
+                }
+              },
+              "metadata": {
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "../types/types.bicep"
+                }
+              }
+            },
+            "_1.HubVnetRangesType": {
+              "type": "object",
+              "properties": {
+                "inboundSubnet": {
+                  "type": "string"
+                },
+                "outboundSubnet": {
+                  "type": "string"
+                },
+                "peSubnet": {
+                  "type": "string"
+                },
+                "privateDnsIp": {
+                  "type": "string"
+                },
+                "vnetAddressPrefix": {
+                  "type": "string"
+                }
+              },
+              "metadata": {
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "../types/types.bicep"
+                }
+              }
+            },
+            "_1.SearchRoleAssignmentsType": {
+              "type": "string",
+              "allowedValues": [
+                "Search Index Data Contributor",
+                "Search Index Data Reader"
+              ],
+              "metadata": {
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "../types/types.bicep"
+                }
+              }
+            },
+            "_1.StorageRoleAssignmentsType": {
+              "type": "string",
+              "allowedValues": [
+                "Storage Blob Data Contributor",
+                "Storage Blob Data Owner",
+                "Storage Blob Data Reader"
+              ],
+              "metadata": {
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "../types/types.bicep"
+                }
+              }
+            }
+          },
+          "parameters": {
+            "accountName": {
+              "type": "string"
+            },
+            "projectName": {
+              "type": "string"
+            },
+            "projectPrincipalId": {
+              "type": "string"
+            },
+            "roleName": {
+              "$ref": "#/definitions/_1.CognitiveServicesRoleAssignmentsType",
+              "defaultValue": "Azure AI User"
+            },
+            "servicePrincipalType": {
+              "type": "string",
+              "defaultValue": "ServicePrincipal",
+              "allowedValues": [
+                "ServicePrincipal",
+                "User"
+              ]
+            }
+          },
+          "variables": {
+            "roleDefinitionIds": {
+              "Cognitive Services OpenAI User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')]",
+              "Cognitive Services User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a97b65f3-24c7-4388-baec-2e87135dc908')]",
+              "Cognitive Services Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '25fbc0a9-bd7c-42a3-aa1a-3b75d497ee68')]",
+              "Azure AI User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '53ca6127-db72-4b80-b1b0-d745d6d5456d')]",
+              "Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+              "Azure AI Project Manager": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'eadc314b-1a2d-4efa-be10-5d325db5065e')]",
+              "Azure AI Account Owner": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'e47c6f54-e4a2-4754-9501-8e0985b135e1')]"
+            },
+            "_1.DefaultDNSZones": {
+              "privatelink.services.ai.azure.com": null,
+              "privatelink.openai.azure.com": null,
+              "privatelink.cognitiveservices.azure.com": null,
+              "privatelink.search.windows.net": null,
+              "[format('privatelink.blob.{0}', environment().suffixes.storage)]": null,
+              "privatelink.documents.azure.com": null,
+              "privatelink.keyvault.azure.com": null
+            },
+            "_1.emptyDnsZone": {
+              "name": "",
+              "resourceGroupName": "",
+              "subscriptionId": ""
+            }
+          },
+          "resources": {
+            "account": {
+              "existing": true,
+              "type": "Microsoft.CognitiveServices/accounts",
+              "apiVersion": "2025-07-01-preview",
+              "name": "[parameters('accountName')]"
+            },
+            "project": {
+              "existing": true,
+              "type": "Microsoft.CognitiveServices/accounts/projects",
+              "apiVersion": "2025-07-01-preview",
+              "name": "[format('{0}/{1}', parameters('accountName'), parameters('projectName'))]"
+            },
+            "roleAssignment": {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.CognitiveServices/accounts/{0}/projects/{1}', parameters('accountName'), parameters('projectName'))]",
+              "name": "[guid(parameters('projectPrincipalId'), variables('roleDefinitionIds')[parameters('roleName')], resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('accountName'), parameters('projectName')))]",
+              "properties": {
+                "principalId": "[parameters('projectPrincipalId')]",
+                "roleDefinitionId": "[variables('roleDefinitionIds')[parameters('roleName')]]",
+                "principalType": "[parameters('servicePrincipalType')]"
+              }
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'foundry-deployment')]",
+        "[resourceId('Microsoft.Resources/deployments', 'logic-apps-deployment')]",
+        "[resourceId('Microsoft.Resources/deployments', format('ai-project-1-with-caphost-{0}', variables('resourceToken')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
       "name": "office365-connection",
       "properties": {
         "expressionEvaluationOptions": {
@@ -5918,6 +6278,15 @@
           "office365ConnectionRuntimeUrl": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'office365-connection'), '2025-04-01').outputs.connectionRuntimeUrl.value]"
           },
+          "aiProjectEndpoint": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('ai-project-1-with-caphost-{0}', variables('resourceToken'))), '2025-04-01').outputs.foundry_connection_string.value]"
+          },
+          "aiFoundryName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'foundry-deployment'), '2025-04-01').outputs.name.value]"
+          },
+          "aiProjectName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('ai-project-1-with-caphost-{0}', variables('resourceToken'))), '2025-04-01').outputs.projectName.value]"
+          },
           "tags": {
             "value": {
               "Environment": "Production",
@@ -5934,7 +6303,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "6791663874609008338"
+              "templateHash": "4006879618923890901"
             }
           },
           "parameters": {
@@ -5973,6 +6342,18 @@
               "defaultValue": ""
             },
             "office365ConnectionRuntimeUrl": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "aiProjectEndpoint": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "aiFoundryName": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "aiProjectName": {
               "type": "string",
               "defaultValue": ""
             },
@@ -11932,8 +12313,8 @@
               },
               "dependsOn": [
                 "identity",
-                "[format('storagePrivateDns[{0}]', 0)]",
                 "[format('storagePrivateDns[{0}]', 1)]",
+                "[format('storagePrivateDns[{0}]', 0)]",
                 "[format('storagePrivateDns[{0}]', 3)]",
                 "[format('storagePrivateDns[{0}]', 2)]"
               ]
@@ -15129,6 +15510,7 @@
                   },
                   "managedIdentities": {
                     "value": {
+                      "systemAssigned": true,
                       "userAssignedResourceIds": [
                         "[parameters('managedIdentityId')]"
                       ]
@@ -15157,7 +15539,7 @@
                     "value": true
                   },
                   "configs": {
-                    "value": "[union(createArray(createObject('name', 'appsettings', 'properties', createObject('FUNCTIONS_EXTENSION_VERSION', '~4', 'FUNCTIONS_WORKER_RUNTIME', 'dotnet', 'APP_KIND', 'workflowApp', 'AZURE_CLIENT_ID', reference('identity').clientId, 'AzureWebJobsStorage__credential', 'managedIdentity', 'AzureWebJobsStorage__credentialType', 'managedIdentity', 'AzureWebJobsStorage__managedIdentityResourceId', parameters('managedIdentityId'), 'AzureWebJobsStorage__clientId', reference('identity').clientId, 'AzureWebJobsStorage__accountName', reference('storageAccount').outputs.name.value, 'AzureWebJobsSecretStorageType', 'files', 'WEBSITE_NODE_DEFAULT_VERSION', '~22', 'AzureFunctionsJobHost__extensionBundle__id', 'Microsoft.Azure.Functions.ExtensionBundle.Workflows', 'AzureFunctionsJobHost__extensionBundle__version', '[1.*, 2.0.0)', 'WORKFLOWS_SUBSCRIPTION_ID', subscription().subscriptionId, 'WORKFLOWS_RESOURCE_GROUP_NAME', resourceGroup().name, 'WORKFLOWS_LOCATION_NAME', parameters('location'), 'OFFICE365_CONNECTION_RUNTIME_URL', parameters('office365ConnectionRuntimeUrl')), 'storageAccountResourceId', reference('storageAccount').outputs.resourceId.value, 'storageAccountUseIdentityAuthentication', true(), 'applicationInsightResourceId', parameters('applicationInsightResourceId'))), if(empty(parameters('myIpAddress')), createArray(), createArray(createObject('name', 'web', 'properties', createObject('ipSecurityRestrictions', createArray(createObject('action', 'Allow', 'description', 'Allow My IP Address', 'ipAddress', format('{0}/32', parameters('myIpAddress')), 'name', 'My IP Address', 'priority', 100)), 'ipSecurityRestrictionsDefaultAction', 'Deny', 'scmIpSecurityRestrictionsDefaultAction', 'Deny', 'scmIpSecurityRestrictions', if(empty(parameters('myIpAddress')), createArray(), createArray(createObject('action', 'Allow', 'description', 'Allow My IP Address', 'ipAddress', format('{0}/32', parameters('myIpAddress')), 'name', 'My IP Address', 'priority', 100))))))))]"
+                    "value": "[union(createArray(createObject('name', 'appsettings', 'properties', createObject('FUNCTIONS_EXTENSION_VERSION', '~4', 'FUNCTIONS_WORKER_RUNTIME', 'dotnet', 'APP_KIND', 'workflowApp', 'AzureWebJobsStorage__credential', 'managedIdentity', 'AzureWebJobsStorage__credentialType', 'managedIdentity', 'AzureWebJobsStorage__managedIdentityResourceId', parameters('managedIdentityId'), 'AzureWebJobsStorage__clientId', reference('identity').clientId, 'AzureWebJobsStorage__accountName', reference('storageAccount').outputs.name.value, 'AzureWebJobsSecretStorageType', 'files', 'WEBSITE_NODE_DEFAULT_VERSION', '~22', 'AzureFunctionsJobHost__extensionBundle__id', 'Microsoft.Azure.Functions.ExtensionBundle.Workflows', 'AzureFunctionsJobHost__extensionBundle__version', '[1.*, 2.0.0)', 'WORKFLOWS_SUBSCRIPTION_ID', subscription().subscriptionId, 'WORKFLOWS_RESOURCE_GROUP_NAME', resourceGroup().name, 'WORKFLOWS_LOCATION_NAME', parameters('location'), 'OFFICE365_CONNECTION_RUNTIME_URL', parameters('office365ConnectionRuntimeUrl'), 'AI_PROJECT_ENDPOINT', parameters('aiProjectEndpoint'), 'AI_FOUNDRY_NAME', parameters('aiFoundryName'), 'AI_PROJECT_NAME', parameters('aiProjectName'), 'AZURE_CLIENT_ID', ''), 'storageAccountResourceId', reference('storageAccount').outputs.resourceId.value, 'storageAccountUseIdentityAuthentication', true(), 'applicationInsightResourceId', parameters('applicationInsightResourceId'))), if(empty(parameters('myIpAddress')), createArray(), createArray(createObject('name', 'web', 'properties', createObject('ipSecurityRestrictions', createArray(createObject('action', 'Allow', 'description', 'Allow My IP Address', 'ipAddress', format('{0}/32', parameters('myIpAddress')), 'name', 'My IP Address', 'priority', 100)), 'ipSecurityRestrictionsDefaultAction', 'Deny', 'scmIpSecurityRestrictionsDefaultAction', 'Deny', 'scmIpSecurityRestrictions', if(empty(parameters('myIpAddress')), createArray(), createArray(createObject('action', 'Allow', 'description', 'Allow My IP Address', 'ipAddress', format('{0}/32', parameters('myIpAddress')), 'name', 'My IP Address', 'priority', 100))))))))]"
                   },
                   "privateEndpoints": "[if(not(empty(parameters('privateEndpointSubnetResourceId'))), createObject('value', createArray(createObject('tags', createObject(), 'subnetResourceId', parameters('privateEndpointSubnetResourceId'), 'service', 'sites', 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', parameters('logicAppPrivateDnsZoneId'))))))), createObject('value', createArray()))]"
                 },
@@ -28009,6 +28391,10 @@
               "type": "string",
               "value": "[reference('logicApp').outputs.resourceId.value]"
             },
+            "logicAppSystemAssignedPrincipalId": {
+              "type": "string",
+              "value": "[reference('logicApp').outputs.systemAssignedMIPrincipalId.value]"
+            },
             "subscriptionId": {
               "type": "string",
               "value": "[subscription().subscriptionId]"
@@ -28022,9 +28408,11 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'dns-sites')]",
+        "[resourceId('Microsoft.Resources/deployments', 'foundry-deployment')]",
         "[resourceId('Microsoft.Resources/deployments', format('mgmtidentity-{0}', uniqueString(deployment().name, parameters('location'))))]",
         "[resourceId('Microsoft.Resources/deployments', 'log-analytics')]",
         "[resourceId('Microsoft.Resources/deployments', 'office365-connection')]",
+        "[resourceId('Microsoft.Resources/deployments', format('ai-project-1-with-caphost-{0}', variables('resourceToken')))]",
         "[resourceId('Microsoft.Resources/deployments', 'vnet')]"
       ]
     },
