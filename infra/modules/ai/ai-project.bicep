@@ -201,6 +201,7 @@ resource project_connection_bing 'Microsoft.CognitiveServices/accounts/projects/
     metadata: {
       ApiType: 'Azure'
       ResourceId: bingAccountId
+      location: 'global'
     }
   }
 }
