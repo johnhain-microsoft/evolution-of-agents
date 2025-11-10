@@ -4,7 +4,11 @@ param connectionName string
 param logicAppPrincipalId string
 
 // Create Office 365 connection using managed identity
-// Note: The connection is created but OAuth consent may be required on first use
+// IMPORTANT: Office365 connector requires manual OAuth consent
+// The connection is created but will fail with 401 Unauthorized until authorized
+// To authorize: Azure Portal → Resource Group → office365v2 connection → Edit API connection → Authorize
+// This is a limitation of Office365 connector - it cannot be fully automated with service principals
+// See: https://learn.microsoft.com/en-us/azure/logic-apps/authenticate-with-managed-identity
 // CRITICAL: kind 'V2' is required for connectionRuntimeUrl to be available
 resource office365Connection 'Microsoft.Web/connections@2018-07-01-preview' = {
   name: connectionName

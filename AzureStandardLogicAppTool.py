@@ -82,19 +82,19 @@ class AzureStandardLogicAppTool:
             {
                 "name": "api-version",
                 "in": "query",
-                "required": True,
+                "required": False,
                 "schema": {"type": "string", "default": "2022-05-01"},
             },
             {
                 "name": "sp",
                 "in": "query",
-                "required": True,
+                "required": False,
                 "schema": {"type": "string"},
             },
             {
                 "name": "sv",
                 "in": "query",
-                "required": True,
+                "required": False,
                 "schema": {"type": "string", "default": "1.0"},
             },
         ]
