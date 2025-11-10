@@ -33,7 +33,7 @@ if ($envContent -notmatch "SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOS
 }
 
 Write-Host ""
-Write-Host "✓ .env file created successfully!" -ForegroundColor Green
+Write-Host "[OK] .env file created successfully!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:"
 Write-Host "  1. Run 'uv sync' to install Python dependencies"
