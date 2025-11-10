@@ -75,46 +75,23 @@ class AzureStandardLogicAppTool:
             if v.get("nullable", False) is False:
                 required.append(k)
 
-        # Standard Logic App query parameters
-        parameters = [
-            {
-                "name": "api-version",
-                "in": "query",
-                "description": "`2022-05-01` is the most common generally available version",
-                "required": True,
-                "schema": {"type": "string", "default": "2022-05-01"},
-                "example": "2022-05-01",
-            },
-            {
-                "name": "sv",
-                "in": "query",
-                "description": "The version number",
-                "required": True,
-                "schema": {"type": "string", "default": "1.0"},
-                "example": "1.0",
-            },
-            {
-                "name": "sp",
-                "in": "query",
-                "description": "The permissions",
-                "required": True,
-                "schema": {
-                    "type": "string",
-                    "default": "%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun",
-                },
-                "example": "%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun",
-            },
-        ]
+        # Logic Apps callback URL already includes api-version, sp, sv, and sig
+        # We'll include api-version, sp, sv directly in the server URL
+        # Only sig is handled separately via security scheme (custom connection)
+        # No additional query parameters needed - all are baked into the callback URL
+        parameters = []
 
         # Use /invoke as the path, as in the example
-        # Normalize workflow name for consistent naming across tool name and operationId
-        normalized_name = workflow_name.replace("_", "-").replace(" ", "-")
+        # Tool name must match pattern ^[a-zA-Z0-9_]+ (only alphanumeric and underscores)
+        tool_name = workflow_name.replace("-", "_").replace(" ", "_")
+        # OperationId can use hyphens for uniqueness and readability
+        operation_id = workflow_name.replace("_", "-").replace(" ", "-")
 
         openapi = {
             "openapi": "3.0.3",
             "info": {
                 "version": "1.0.0.0",
-                "title": normalized_name,
+                "title": tool_name,
                 "description": f"Logic App workflow: {workflow_name}",
             },
             "servers": [{"url": server_url or "https://your-logic-app-url/paths"}],
@@ -123,7 +100,7 @@ class AzureStandardLogicAppTool:
                 "/invoke": {
                     "post": {
                         "description": f"Invoke {workflow_name} Logic App workflow",
-                        "operationId": f"{normalized_name}-invoke",
+                        "operationId": f"{operation_id}-invoke",
                         "parameters": parameters,
                         "responses": {
                             "200": {
@@ -295,17 +272,27 @@ def create_logic_app_tools(
         )
         # print(f"Found Callback URL for workflow '{workflow_name}'")
 
-        # parse callback URL to get the base URL
+        # Parse callback URL - it includes all required query params
         parsed_callback = urlparse(callback_url)
         query_params = parse_qs(parsed_callback.query)
         sig = query_params.get("sig", [None])[0]
 
-        base_callback_url = (
-            f"{parsed_callback.scheme}://{parsed_callback.netloc}{parsed_callback.path}"
+        # Remove 'sig' from query params (handled via security scheme)
+        # Keep api-version, sp, sv in the URL
+        filtered_params = {k: v for k, v in query_params.items() if k != "sig"}
+        filtered_query_string = "&".join(
+            [f"{k}={v[0]}" for k, v in filtered_params.items()]
         )
-        # remove /invoke from path
-        if base_callback_url.endswith("/invoke"):
-            base_callback_url = base_callback_url[: -len("/invoke")]
+
+        # Build base URL without /invoke suffix
+        base_url_path = parsed_callback.path
+        if base_url_path.endswith("/invoke"):
+            base_url_path = base_url_path[: -len("/invoke")]
+
+        # Server URL includes api-version, sp, sv but NOT sig
+        base_callback_url = f"{parsed_callback.scheme}://{parsed_callback.netloc}{base_url_path}"
+        if filtered_query_string:
+            base_callback_url = f"{base_callback_url}?{filtered_query_string}"
 
         # update openapi spec server URL
         openapi_spec["servers"] = [{"url": base_callback_url}]
@@ -329,8 +316,8 @@ def create_logic_app_tools(
         )
 
         # 6. Create OpenAPI tool and invoke
-        # Use normalized name (hyphens) to match operationId format
-        tool_name = workflow_name.replace("_", "-").replace(" ", "-")
+        # Tool name must match ^[a-zA-Z0-9_]+ pattern (underscores, no hyphens)
+        tool_name = workflow_name.replace("-", "_").replace(" ", "_")
         openapi_tool = OpenApiTool(
             name=tool_name,
             spec=openapi_spec,
