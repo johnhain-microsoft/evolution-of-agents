@@ -75,11 +75,29 @@ class AzureStandardLogicAppTool:
             if v.get("nullable", False) is False:
                 required.append(k)
 
-        # Logic Apps callback URL already includes api-version, sp, sv, and sig
-        # We'll include api-version, sp, sv directly in the server URL
-        # Only sig is handled separately via security scheme (custom connection)
-        # No additional query parameters needed - all are baked into the callback URL
-        parameters = []
+        # Query parameters from Logic Apps callback URL
+        # These will be defined as parameters so Azure AI Agents can append them properly
+        # Extract default values from the callback URL
+        parameters = [
+            {
+                "name": "api-version",
+                "in": "query",
+                "required": True,
+                "schema": {"type": "string", "default": "2022-05-01"},
+            },
+            {
+                "name": "sp",
+                "in": "query",
+                "required": True,
+                "schema": {"type": "string"},
+            },
+            {
+                "name": "sv",
+                "in": "query",
+                "required": True,
+                "schema": {"type": "string", "default": "1.0"},
+            },
+        ]
 
         # Use /invoke as the path, as in the example
         # Tool name must match pattern ^[a-zA-Z0-9_]+ (only alphanumeric and underscores)
@@ -97,7 +115,7 @@ class AzureStandardLogicAppTool:
             "servers": [{"url": server_url or "https://your-logic-app-url/paths"}],
             "security": [{"sig": []}],
             "paths": {
-                "": {
+                "/invoke": {
                     "post": {
                         "description": f"Invoke {workflow_name} Logic App workflow",
                         "operationId": f"{operation_id}-invoke",
@@ -272,28 +290,27 @@ def create_logic_app_tools(
         )
         # print(f"Found Callback URL for workflow '{workflow_name}'")
 
-        # Parse callback URL - it includes all required query params
+        # Parse callback URL - extract query params for use as parameter defaults
         parsed_callback = urlparse(callback_url)
         query_params = parse_qs(parsed_callback.query)
         sig = query_params.get("sig", [None])[0]
+        sp_value = query_params.get("sp", [None])[0]
 
-        # Remove 'sig' from query params (handled via security scheme)
-        # Keep api-version, sp, sv in the URL
-        filtered_params = {k: v for k, v in query_params.items() if k != "sig"}
-        filtered_query_string = "&".join(
-            [f"{k}={v[0]}" for k, v in filtered_params.items()]
-        )
+        # Update sp parameter default with actual value from callback URL
+        for param in openapi_spec["paths"]["/invoke"]["post"]["parameters"]:
+            if param["name"] == "sp" and sp_value:
+                param["schema"]["default"] = sp_value
 
-        # OpenAPI concatenates {server-url}{path}
-        # Since we use empty path "", the server URL must include /invoke
-        # Server URL: https://logic-app.../triggers/name/invoke?api-version=...&sp=...&sv=...
-        # Path: "" (empty)
-        # Result: Full callback URL without sig
-        base_callback_url = f"{parsed_callback.scheme}://{parsed_callback.netloc}{parsed_callback.path}"
-        if filtered_query_string:
-            base_callback_url = f"{base_callback_url}?{filtered_query_string}"
+        # Server URL should NOT include /invoke or query params
+        # Path will be /invoke, and query params will be appended by Azure AI Agents
+        # Remove /invoke from the end of the path
+        base_url_path = parsed_callback.path
+        if base_url_path.endswith("/invoke"):
+            base_url_path = base_url_path[: -len("/invoke")]
 
-        # update openapi spec server URL
+        base_callback_url = f"{parsed_callback.scheme}://{parsed_callback.netloc}{base_url_path}"
+
+        # update openapi spec server URL (without query params)
         openapi_spec["servers"] = [{"url": base_callback_url}]
         connection_name = f"openapi-logicapp-{logic_app_name}-{workflow_name}"
 
