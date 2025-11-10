@@ -1,4 +1,4 @@
-# Post-deployment script to add Playwright connection to AI Foundry
+﻿# Post-deployment script to add Playwright connection to AI Foundry
 # Uses Entra ID authentication (no manual tokens required)
 #
 # Prerequisites:
@@ -85,7 +85,7 @@ $headers = @{
 try {
   $response = Invoke-RestMethod -Method Put -Uri $connectionApiUrl -Headers $headers -Body $connectionPayload
 
-  Write-Host "✓ Playwright connection created successfully!" -ForegroundColor Green
+  Write-Host "[OK] Playwright connection created successfully!" -ForegroundColor Green
   Write-Host ""
   Write-Host "Connection details:"
   Write-Host "  Name: Playwright"
