@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.38.33.27573",
-      "templateHash": "8572648211071680444"
+      "templateHash": "5062180346925349927"
     }
   },
   "parameters": {
@@ -4104,12 +4104,6 @@
           "myIpAddress": {
             "value": "[parameters('myIpAddress')]"
           },
-          "bingAccountId": {
-            "value": "[resourceId('Microsoft.Bing/accounts', format('bing-grounding-{0}', variables('resourceToken')))]"
-          },
-          "bingAccountEndpoint": {
-            "value": "[reference(resourceId('Microsoft.Bing/accounts', format('bing-grounding-{0}', variables('resourceToken'))), '2025-05-01-preview').endpoint]"
-          },
           "playwrightWorkspaceId": {
             "value": "[resourceId('Microsoft.LoadTestService/playwrightWorkspaces', format('pw-{0}', variables('resourceToken')))]"
           },
@@ -4170,7 +4164,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "14710938657223528104"
+              "templateHash": "6137268516073618853"
             }
           },
           "definitions": {
@@ -4291,14 +4285,6 @@
               "type": "string",
               "defaultValue": ""
             },
-            "bingAccountId": {
-              "type": "string",
-              "defaultValue": ""
-            },
-            "bingAccountEndpoint": {
-              "type": "string",
-              "defaultValue": ""
-            },
             "playwrightWorkspaceId": {
               "type": "string",
               "defaultValue": ""
@@ -4354,41 +4340,12 @@
                 "appInsights"
               ]
             },
-            "account::bingConnection": {
-              "condition": "[and(not(variables('useExistingService')), not(empty(parameters('bingAccountId'))))]",
-              "type": "Microsoft.CognitiveServices/accounts/connections",
-              "apiVersion": "2025-04-01-preview",
-              "name": "[format('{0}/{1}', parameters('name'), 'BingGrounding')]",
-              "properties": {
-                "category": "BingLLMSearch",
-                "target": "[parameters('bingAccountEndpoint')]",
-                "authType": "ApiKey",
-                "isSharedToAll": true,
-                "credentials": {
-                  "key": "[if(not(empty(parameters('bingAccountId'))), listKeys(parameters('bingAccountId'), '2025-05-01-preview').key1, '')]"
-                },
-                "metadata": {
-                  "ApiType": "Azure",
-                  "Location": "[parameters('location')]"
-                }
-              },
-              "dependsOn": [
-                "account"
-              ]
-            },
             "identity": {
               "condition": "[not(empty(variables('managedIdentityName')))]",
               "existing": true,
               "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
               "apiVersion": "2023-07-31-preview",
               "name": "[variables('managedIdentityName')]"
-            },
-            "bingAccount": {
-              "condition": "[not(empty(parameters('bingAccountId')))]",
-              "existing": true,
-              "type": "Microsoft.Bing/accounts",
-              "apiVersion": "2025-05-01-preview",
-              "name": "[last(split(parameters('bingAccountId'), '/'))]"
             },
             "existingAccount": {
               "condition": "[variables('useExistingService')]",
@@ -4480,7 +4437,6 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Bing/accounts', format('bing-grounding-{0}', variables('resourceToken')))]",
         "[resourceId('Microsoft.Resources/deployments', 'log-analytics')]",
         "[resourceId('Microsoft.LoadTestService/playwrightWorkspaces', format('pw-{0}', variables('resourceToken')))]",
         "[resourceId('Microsoft.Resources/deployments', 'vnet')]"
@@ -4510,6 +4466,12 @@
           },
           "managedIdentityId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('mgmtidentity-{0}', uniqueString(deployment().name, parameters('location')))), '2025-04-01').outputs.resourceId.value]"
+          },
+          "bingAccountId": {
+            "value": "[resourceId('Microsoft.Bing/accounts', format('bing-grounding-{0}', variables('resourceToken')))]"
+          },
+          "bingAccountEndpoint": {
+            "value": "[reference(resourceId('Microsoft.Bing/accounts', format('bing-grounding-{0}', variables('resourceToken'))), '2025-05-01-preview').endpoint]"
           }
         },
         "template": {
@@ -4520,7 +4482,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "3498409579440378109"
+              "templateHash": "13460699666789050335"
             }
           },
           "definitions": {
@@ -4790,6 +4752,14 @@
             },
             "projectId": {
               "type": "int"
+            },
+            "bingAccountId": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "bingAccountEndpoint": {
+              "type": "string",
+              "defaultValue": ""
             }
           },
           "variables": {
@@ -4878,6 +4848,12 @@
                   },
                   "cosmosDBSubscriptionId": {
                     "value": "[parameters('aiDependencies').cosmosDB.subscriptionId]"
+                  },
+                  "bingAccountId": {
+                    "value": "[parameters('bingAccountId')]"
+                  },
+                  "bingAccountEndpoint": {
+                    "value": "[parameters('bingAccountEndpoint')]"
                   }
                 },
                 "template": {
@@ -4888,7 +4864,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.38.33.27573",
-                      "templateHash": "11025071991952176630"
+                      "templateHash": "10782118451508170529"
                     }
                   },
                   "parameters": {
@@ -4975,6 +4951,14 @@
                       "metadata": {
                         "description": "Deprecated: Account-level CapabilityHost removed to prevent 409 Conflict. Kept for backwards compatibility."
                       }
+                    },
+                    "bingAccountId": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "bingAccountEndpoint": {
+                      "type": "string",
+                      "defaultValue": ""
                     },
                     "usingFoundryAiConnection": {
                       "type": "bool",
@@ -5153,6 +5137,28 @@
                       "dependsOn": [
                         "foundry_project",
                         "searchService"
+                      ]
+                    },
+                    "project_connection_bing": {
+                      "condition": "[not(empty(parameters('bingAccountId')))]",
+                      "type": "Microsoft.CognitiveServices/accounts/projects/connections",
+                      "apiVersion": "2025-04-01-preview",
+                      "name": "[format('{0}/{1}/{2}', parameters('foundry_name'), parameters('project_name'), format('binggrounding-for-{0}', parameters('project_name')))]",
+                      "properties": {
+                        "category": "BingLLMSearch",
+                        "target": "[parameters('bingAccountEndpoint')]",
+                        "authType": "ApiKey",
+                        "credentials": {
+                          "key": "[if(not(empty(parameters('bingAccountId'))), listKeys(parameters('bingAccountId'), '2025-05-01-preview').key1, '')]"
+                        },
+                        "metadata": {
+                          "ApiType": "Azure",
+                          "ResourceId": "[parameters('bingAccountId')]",
+                          "location": "global"
+                        }
+                      },
+                      "dependsOn": [
+                        "foundry_project"
                       ]
                     }
                   },
@@ -5776,6 +5782,7 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'ai-dependencies-with-dns')]",
+        "[resourceId('Microsoft.Bing/accounts', format('bing-grounding-{0}', variables('resourceToken')))]",
         "[resourceId('Microsoft.Resources/deployments', 'foundry-deployment')]",
         "[resourceId('Microsoft.Resources/deployments', format('mgmtidentity-{0}', uniqueString(deployment().name, parameters('location'))))]"
       ]
@@ -6303,7 +6310,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "4006879618923890901"
+              "templateHash": "9944330592446886652"
             }
           },
           "parameters": {
@@ -12313,10 +12320,10 @@
               },
               "dependsOn": [
                 "identity",
-                "[format('storagePrivateDns[{0}]', 1)]",
                 "[format('storagePrivateDns[{0}]', 0)]",
+                "[format('storagePrivateDns[{0}]', 2)]",
                 "[format('storagePrivateDns[{0}]', 3)]",
-                "[format('storagePrivateDns[{0}]', 2)]"
+                "[format('storagePrivateDns[{0}]', 1)]"
               ]
             },
             "storagePrivateDns": {

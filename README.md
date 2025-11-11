@@ -155,61 +155,29 @@ The `azd up` command automatically provisions:
 - ✅ Log Analytics and Application Insights
 - ✅ All private endpoints and DNS zones
 
----
+### Post-Deployment: Office 365 Authentication
 
-## 🪟 Quick Install (Windows)
+**IMPORTANT**: The Office 365 connector requires manual OAuth consent. This is the only manual step after `azd up` completes.
 
-**New!** Windows users can now use the one-click installer for automated setup!
+The Office 365 connection is created during deployment but will fail with `401 Unauthorized` until you authorize it in the Azure Portal. This is a limitation of the Office 365 connector - it cannot be fully automated with service principals.
 
-### Quick Install with Installer Script
+**How to authorize:**
 
-The PowerShell installer automates the entire setup process:
+1. Open Azure Portal and navigate to your resource group
+2. Find the resource named `office365` (type: API Connection)
+3. Click on the resource
+4. In the left menu, click **Edit API connection**
+5. Click the **Authorize** button
+6. Sign in with your Office 365 account when prompted
+7. Click **Save**
 
-```powershell
-# Download and run the installer
-# Option 1: If you have the repo already
-cd azure-ai-foundry-agents
-.\installer.ps1
-
-# Option 2: Download installer directly
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Azure-Samples/azure-ai-foundry-agents/main/installer.ps1" -OutFile "installer.ps1"
-.\installer.ps1
-```
-
-**What the installer does:**
-- ✅ Checks and installs prerequisites (Azure CLI, Python, uv, Git)
-- ✅ Clones the repository (or uses existing directory)
-- ✅ Guides you through Azure authentication
-- ✅ Prompts for Azure configuration (tenant, subscription, region)
-- ✅ Deploys Azure infrastructure (`azd up`)
-- ✅ Installs Python dependencies (`uv sync`)
-- ✅ Creates your `.env` file automatically
-- ⏱️ **Total time: 30-45 minutes** (most time is Azure deployment: 15-25 min)
-
-**System Requirements:**
-- Windows 10 (1809+) or Windows 11
-- ~2 GB free disk space
-- Active Azure subscription with Contributor access
-- Internet connection
-
-**Installation Log:**
-The installer saves detailed logs to `%TEMP%\azure-ai-foundry-agents-installer.log` for troubleshooting.
-
-**Uninstall:**
-To remove the installation, run:
-```powershell
-.\uninstall.ps1
-```
-This will optionally:
-- Delete Azure resources (`azd down`)
-- Remove installation directory
-- Prerequisites (Python, Azure CLI, etc.) are kept and can be manually uninstalled if desired
+**Reference**: [Azure Logic Apps - Authenticate with Managed Identity](https://learn.microsoft.com/en-us/azure/logic-apps/authenticate-with-managed-identity)
 
 ---
 
-## 🪟 Windows Manual Setup Instructions
+## 🪟 Windows Setup Instructions
 
-If you prefer manual setup or the installer encounters issues, follow these comprehensive step-by-step instructions for Windows 11 developers. If you're using Linux or Mac, refer to the standard "Quick Start" section above.
+Follow these comprehensive step-by-step instructions for Windows developers. If you're using Linux or Mac, refer to the standard "Quick Start" section above.
 
 ### Prerequisites
 

@@ -10,10 +10,6 @@ This document provides a comprehensive guide to the Azure AI Foundry Agents repo
 
 ```
 evolution-of-agents/
-├── .bmad-core/                  # BMad framework core (agent orchestration)
-├── .bmad-infrastructure-devops/ # BMad infrastructure bundle
-├── .claude/                     # Claude Code CLI configuration
-├── .github/                     # GitHub-specific files (chat modes)
 ├── .gitignore                   # Git ignore rules
 ├── .python-version              # Python version specification (3.11)
 ├── .vscode/                     # VS Code workspace settings
@@ -251,9 +247,8 @@ infra/
 
 ```
 docs/
-├── prd.md                       # Product Requirements Document (NEW)
-├── architecture.md              # Architecture document (NEW)
-├── architecture/                # Architecture shards (NEW)
+├── architecture.md              # Architecture documentation
+├── architecture/                # Architecture shards
 │   ├── coding-standards.md      # Development standards
 │   ├── tech-stack.md            # Technology reference
 │   └── source-tree.md           # This document
@@ -263,9 +258,8 @@ docs/
 ```
 
 **Purpose**:
-- `prd.md`: Requirements for Developer Experience Improvements epic
-- `architecture.md`: Comprehensive architecture for enhancements
-- `architecture/`: Sharded documents for dev agent consumption
+- `architecture.md`: Comprehensive architecture documentation
+- `architecture/`: Sharded documents for detailed technical reference
 - `BUGBUSTER.md`: Demo content for RAG retrieval (fictional product spec)
 - `weather.json`: OpenAPI spec for weather tool (notebook 7)
 - `book1-100k.csv`: Books data for MCP demos (notebooks 6, 6-mcp-pg)
@@ -376,59 +370,14 @@ images/
 
 ---
 
-## BMad Framework (Agent Orchestration)
+## VS Code
 
 ```
-.bmad-core/                      # BMad framework core
-├── core-config.yaml             # BMad project configuration
-├── agents/                      # BMad agent definitions
-│   ├── architect.md
-│   ├── pm.md
-│   ├── dev.md
-│   ├── sm.md
-│   ├── qa.md
-│   ├── po.md
-│   ├── analyst.md
-│   ├── ux-expert.md
-│   ├── bmad-orchestrator.md
-│   └── bmad-master.md
-├── tasks/                       # BMad task definitions
-├── templates/                   # BMad templates (PRD, architecture, stories)
-├── workflows/                   # BMad workflow definitions
-├── checklists/                  # BMad checklists
-└── data/                        # BMad knowledge base data
-
-.bmad-infrastructure-devops/     # BMad infrastructure bundle
-└── (similar structure)
-
-.claude/                         # Claude Code CLI configuration
-└── commands/
-    └── BMad/                    # BMad slash commands
-```
-
-**Purpose**: BMad Method framework for AI-driven software development
-
-**Usage**: Provides agent orchestration for creating PRDs, architecture docs, stories, and managing development workflow
-
----
-
-## GitHub and VS Code
-
-```
-.github/
-└── chatmodes/                   # GitHub Copilot chat modes
-    ├── architect.chatmode.md
-    ├── pm.chatmode.md
-    ├── dev.chatmode.md
-    └── (other agent chat modes)
-
 .vscode/
 └── settings.json                # VS Code workspace settings
 ```
 
-**Purpose**:
-- `.github/chatmodes/`: Custom GitHub Copilot chat modes for BMad agents
-- `.vscode/`: VS Code configuration (Python interpreter, formatters, etc.)
+**Purpose**: VS Code configuration (Python interpreter, formatters, etc.)
 
 ---
 
@@ -441,7 +390,6 @@ images/
 - `__pycache__/`, `*.pyc` (Python cache)
 - `.DS_Store` (macOS)
 - `downloaded__*.png` (notebook output files)
-- BMad framework directories (`.bmad-core/`, etc.)
 
 **Included in Git**:
 - `.env.example` (template)
@@ -505,17 +453,16 @@ Look in: `setup.py` (root level)
 
 ### Must Read Before Starting
 1. `README.md`: Project overview and setup instructions
-2. `docs/prd.md`: Requirements for current work
-3. `docs/architecture.md`: Technical architecture
-4. `docs/architecture/coding-standards.md`: Coding conventions
-5. `docs/architecture/tech-stack.md`: Technology reference
-6. `docs/architecture/source-tree.md`: This document
+2. `docs/architecture.md`: Technical architecture
+3. `docs/architecture/coding-standards.md`: Coding conventions
+4. `docs/architecture/tech-stack.md`: Technology reference
+5. `docs/architecture/source-tree.md`: This document
 
 ### Key Configuration Files
 1. `.env.example`: Required environment variables
 2. `pyproject.toml`: Python dependencies
-3. `infra/main.bicep`: Infrastructure definition (being fixed/enhanced)
-4. `azure.yaml`: Azure Developer CLI configuration (enhanced with automation hooks)
+3. `infra/main.bicep`: Infrastructure definition
+4. `azure.yaml`: Azure Developer CLI configuration
 
 ### Entry Points for Code Understanding
 1. `setup.py`: Core agent utilities
