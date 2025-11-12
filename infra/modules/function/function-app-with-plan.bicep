@@ -1,5 +1,7 @@
 // Deploys a Function App with its own App Service Plan and Storage Account
 // Public access is disabled. No VNET integration. Uses zip deployment for source code.
+import * as types from '../types/types.bicep'
+
 param name string
 param location string
 param managedIdentityId string
@@ -16,6 +18,9 @@ param aiProjectEndpoint string = ''
 param aiFoundryName string = ''
 param aiProjectName string = ''
 param tags object = {}
+
+@description('Existing DNS zones to reuse instead of creating new ones')
+param existingDnsZones types.DnsZonesType = types.DefaultDNSZones
 
 // --------------------------------------------------------------------------------------------------------------
 // split managed identity resource ID to get the name
@@ -104,7 +109,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.25.1' = {
         privateDnsZoneGroup: {
           privateDnsZoneGroupConfigs: [
             {
-              privateDnsZoneResourceId: storagePrivateDns[0].outputs.resourceId
+              privateDnsZoneResourceId: blobDnsZoneId
             }
           ]
         }
@@ -115,7 +120,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.25.1' = {
         privateDnsZoneGroup: {
           privateDnsZoneGroupConfigs: [
             {
-              privateDnsZoneResourceId: storagePrivateDns[1].outputs.resourceId
+              privateDnsZoneResourceId: queuePrivateDns.outputs.resourceId
             }
           ]
         }
@@ -126,7 +131,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.25.1' = {
         privateDnsZoneGroup: {
           privateDnsZoneGroupConfigs: [
             {
-              privateDnsZoneResourceId: storagePrivateDns[2].outputs.resourceId
+              privateDnsZoneResourceId: tablePrivateDns.outputs.resourceId
             }
           ]
         }
@@ -137,7 +142,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.25.1' = {
         privateDnsZoneGroup: {
           privateDnsZoneGroupConfigs: [
             {
-              privateDnsZoneResourceId: storagePrivateDns[3].outputs.resourceId
+              privateDnsZoneResourceId: filePrivateDns.outputs.resourceId
             }
           ]
         }
@@ -146,35 +151,67 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.25.1' = {
   }
 }
 
-var storageZones = [
-  {
-    name: 'privatelink.blob.${environment().suffixes.storage}'
-  }
-  {
-    name: 'privatelink.queue.${environment().suffixes.storage}'
-  }
-  {
-    name: 'privatelink.table.${environment().suffixes.storage}'
-  }
-  {
-    name: 'privatelink.file.${environment().suffixes.storage}'
-  }
-]
+// Storage DNS zones - check if blob zone already exists (created by ai_dependencies module)
+var blobDnsZoneName = 'privatelink.blob.${environment().suffixes.storage}'
+var queueDnsZoneName = 'privatelink.queue.${environment().suffixes.storage}'
+var tableDnsZoneName = 'privatelink.table.${environment().suffixes.storage}'
+var fileDnsZoneName = 'privatelink.file.${environment().suffixes.storage}'
 
-module storagePrivateDns 'br/public:avm/res/network/private-dns-zone:0.7.1' = [
-  for zone in storageZones: {
-    name: 'privateDnsZoneDeployment-${zone.name}'
-    params: {
-      // Required parameters
-      name: zone.name
-      // Non-required parameters
-      location: 'global'
-      virtualNetworkLinks: [
-        { virtualNetworkResourceId: virtualNetworkResourceId }
-      ]
-    }
+var blobDnsZone = existingDnsZones[?blobDnsZoneName]
+
+// Reference existing blob DNS zone if it exists
+resource blobPrivateDnsZoneExisting 'Microsoft.Network/privateDnsZones@2020-06-01' existing = if (!empty(blobDnsZone)) {
+  name: blobDnsZoneName
+  scope: resourceGroup(blobDnsZone!.subscriptionId, blobDnsZone!.resourceGroupName)
+}
+
+// Create blob DNS zone only if it doesn't already exist
+module blobPrivateDnsZoneNew 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (empty(blobDnsZone)) {
+  name: 'privateDnsZoneDeployment-blob'
+  params: {
+    name: blobDnsZoneName
+    location: 'global'
+    virtualNetworkLinks: [
+      { virtualNetworkResourceId: virtualNetworkResourceId }
+    ]
   }
-]
+}
+
+var blobDnsZoneId = empty(blobDnsZone) ? blobPrivateDnsZoneNew.outputs.resourceId : blobPrivateDnsZoneExisting.id
+
+// Create queue, table, file DNS zones (unique to Logic App storage)
+module queuePrivateDns 'br/public:avm/res/network/private-dns-zone:0.7.1' = {
+  name: 'privateDnsZoneDeployment-queue'
+  params: {
+    name: queueDnsZoneName
+    location: 'global'
+    virtualNetworkLinks: [
+      { virtualNetworkResourceId: virtualNetworkResourceId }
+    ]
+  }
+}
+
+module tablePrivateDns 'br/public:avm/res/network/private-dns-zone:0.7.1' = {
+  name: 'privateDnsZoneDeployment-table'
+  params: {
+    name: tableDnsZoneName
+    location: 'global'
+    virtualNetworkLinks: [
+      { virtualNetworkResourceId: virtualNetworkResourceId }
+    ]
+  }
+}
+
+module filePrivateDns 'br/public:avm/res/network/private-dns-zone:0.7.1' = {
+  name: 'privateDnsZoneDeployment-file'
+  params: {
+    name: fileDnsZoneName
+    location: 'global'
+    virtualNetworkLinks: [
+      { virtualNetworkResourceId: virtualNetworkResourceId }
+    ]
+  }
+}
 
 // module serverfarm 'br/public:avm/res/web/serverfarm:0.4.1' = {
 //   name: 'serverfarmDeployment'
@@ -310,7 +347,7 @@ module logicApp 'br/public:avm/res/web/site:0.19.4' = {
 
 output storageAccountName string = storageAccount.outputs.name
 output planName string = serverfarmForLogicApps.name
-output dnsBlobZoneId string = storagePrivateDns[0].outputs.resourceId
+output dnsBlobZoneId string = blobDnsZoneId
 output logicAppName string = logicApp.outputs.name
 output logicAppResourceId string = logicApp.outputs.resourceId
 output logicAppSystemAssignedPrincipalId string = logicApp.outputs.systemAssignedMIPrincipalId

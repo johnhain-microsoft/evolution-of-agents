@@ -208,6 +208,7 @@ module logicAppsDeployment './modules/function/function-app-with-plan.bicep' = {
     aiProjectEndpoint: project1.outputs.foundry_connection_string
     aiFoundryName: foundry.outputs.name
     aiProjectName: project1.outputs.projectName
+    existingDnsZones: ai_dependencies.outputs.DNSZones
     tags: {
       Environment: 'Production'
       Project: 'EvolutionOfAgents'
