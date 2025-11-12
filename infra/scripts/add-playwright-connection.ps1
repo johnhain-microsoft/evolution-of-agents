@@ -1,6 +1,15 @@
 ﻿# Post-deployment script to add Playwright connection to AI Foundry
 # Uses Entra ID authentication (no manual tokens required)
 #
+# ⚠️  WARNING: FOR DEMO/DEVELOPMENT PURPOSES ONLY
+# This implementation uses a short-lived access token (~75 min) as a static ApiKey credential,
+# which is NOT recommended for production environments. Production systems should use:
+#   1. Managed Identity with proper Entra ID authentication (not ApiKey authType)
+#   2. Custom RBAC role with least privilege (not Contributor role)
+#   3. Automatic token rotation and credential management
+# Microsoft explicitly warns: "Access tokens function like long-lived passwords and are more
+# susceptible to being compromised. We strongly recommend Entra ID for enhanced security."
+#
 # Prerequisites:
 # - Azure CLI logged in
 # - Contributor/Owner role on Playwright workspace (already assigned in Bicep)

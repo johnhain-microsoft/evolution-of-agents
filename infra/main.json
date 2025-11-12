@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.38.33.27573",
-      "templateHash": "17642110219086238688"
+      "templateHash": "4359589076449402393"
     }
   },
   "parameters": {
@@ -23,7 +23,8 @@
     }
   },
   "variables": {
-    "resourceToken": "[toLower(uniqueString(resourceGroup().id, parameters('location')))]"
+    "resourceToken": "[toLower(uniqueString(resourceGroup().id, parameters('location')))]",
+    "vnetAddressSpace": "192.168.0.0/16"
   },
   "resources": [
     {
@@ -4463,6 +4464,9 @@
           },
           "bingAccountEndpoint": {
             "value": "[reference(resourceId('Microsoft.Bing/accounts', format('bing-grounding-{0}', variables('resourceToken'))), '2025-05-01-preview').endpoint]"
+          },
+          "resourceToken": {
+            "value": "[variables('resourceToken')]"
           }
         },
         "template": {
@@ -4473,7 +4477,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "13460699666789050335"
+              "templateHash": "12618662070383113396"
             }
           },
           "definitions": {
@@ -4751,6 +4755,9 @@
             "bingAccountEndpoint": {
               "type": "string",
               "defaultValue": ""
+            },
+            "resourceToken": {
+              "type": "string"
             }
           },
           "variables": {
@@ -4845,6 +4852,9 @@
                   },
                   "bingAccountEndpoint": {
                     "value": "[parameters('bingAccountEndpoint')]"
+                  },
+                  "resourceToken": {
+                    "value": "[parameters('resourceToken')]"
                   }
                 },
                 "template": {
@@ -4855,7 +4865,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.38.33.27573",
-                      "templateHash": "10782118451508170529"
+                      "templateHash": "15980387357822586005"
                     }
                   },
                   "parameters": {
@@ -4950,6 +4960,9 @@
                     "bingAccountEndpoint": {
                       "type": "string",
                       "defaultValue": ""
+                    },
+                    "resourceToken": {
+                      "type": "string"
                     },
                     "usingFoundryAiConnection": {
                       "type": "bool",
@@ -5134,7 +5147,7 @@
                       "condition": "[not(empty(parameters('bingAccountId')))]",
                       "type": "Microsoft.CognitiveServices/accounts/projects/connections",
                       "apiVersion": "2025-04-01-preview",
-                      "name": "[format('{0}/{1}/{2}', parameters('foundry_name'), parameters('project_name'), format('binggrounding-for-{0}', parameters('project_name')))]",
+                      "name": "[format('{0}/{1}/{2}', parameters('foundry_name'), parameters('project_name'), format('binggrounding{0}', parameters('resourceToken')))]",
                       "properties": {
                         "category": "BingLLMSearch",
                         "target": "[parameters('bingAccountEndpoint')]",
@@ -6261,6 +6274,9 @@
           "virtualNetworkResourceId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.virtualNetworkId.value]"
           },
+          "vnetAddressSpace": {
+            "value": "[variables('vnetAddressSpace')]"
+          },
           "logicAppsSubnetResourceId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.logicAppsSubnetId.value]"
           },
@@ -6304,7 +6320,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.38.33.27573",
-              "templateHash": "2909272677861628158"
+              "templateHash": "1944430310201933889"
             }
           },
           "definitions": {
@@ -6576,6 +6592,10 @@
             },
             "virtualNetworkResourceId": {
               "type": "string"
+            },
+            "vnetAddressSpace": {
+              "type": "string",
+              "defaultValue": "192.168.0.0/16"
             },
             "myIpAddress": {
               "type": "string",
@@ -25277,7 +25297,7 @@
                     "value": true
                   },
                   "configs": {
-                    "value": "[union(createArray(createObject('name', 'appsettings', 'properties', createObject('FUNCTIONS_EXTENSION_VERSION', '~4', 'FUNCTIONS_WORKER_RUNTIME', 'dotnet', 'APP_KIND', 'workflowApp', 'AzureWebJobsStorage__credential', 'managedIdentity', 'AzureWebJobsStorage__credentialType', 'managedIdentity', 'AzureWebJobsStorage__managedIdentityResourceId', parameters('managedIdentityId'), 'AzureWebJobsStorage__clientId', reference('identity').clientId, 'AzureWebJobsStorage__accountName', reference('storageAccount').outputs.name.value, 'AzureWebJobsSecretStorageType', 'files', 'WEBSITE_NODE_DEFAULT_VERSION', '~22', 'AzureFunctionsJobHost__extensionBundle__id', 'Microsoft.Azure.Functions.ExtensionBundle.Workflows', 'AzureFunctionsJobHost__extensionBundle__version', '[1.*, 2.0.0)', 'WORKFLOWS_SUBSCRIPTION_ID', subscription().subscriptionId, 'WORKFLOWS_RESOURCE_GROUP_NAME', resourceGroup().name, 'WORKFLOWS_LOCATION_NAME', parameters('location'), 'OFFICE365_CONNECTION_RUNTIME_URL', parameters('office365ConnectionRuntimeUrl'), 'AI_PROJECT_ENDPOINT', parameters('aiProjectEndpoint'), 'AI_FOUNDRY_NAME', parameters('aiFoundryName'), 'AI_PROJECT_NAME', parameters('aiProjectName'), 'AZURE_CLIENT_ID', ''), 'storageAccountResourceId', reference('storageAccount').outputs.resourceId.value, 'storageAccountUseIdentityAuthentication', true(), 'applicationInsightResourceId', parameters('applicationInsightResourceId'))), if(empty(parameters('myIpAddress')), createArray(), createArray(createObject('name', 'web', 'properties', createObject('ipSecurityRestrictions', createArray(createObject('action', 'Allow', 'description', 'Allow My IP Address', 'ipAddress', format('{0}/32', parameters('myIpAddress')), 'name', 'My IP Address', 'priority', 100)), 'ipSecurityRestrictionsDefaultAction', 'Deny', 'scmIpSecurityRestrictionsDefaultAction', 'Deny', 'scmIpSecurityRestrictions', if(empty(parameters('myIpAddress')), createArray(), createArray(createObject('action', 'Allow', 'description', 'Allow My IP Address', 'ipAddress', format('{0}/32', parameters('myIpAddress')), 'name', 'My IP Address', 'priority', 100))))))))]"
+                    "value": "[union(createArray(createObject('name', 'appsettings', 'properties', createObject('FUNCTIONS_EXTENSION_VERSION', '~4', 'FUNCTIONS_WORKER_RUNTIME', 'dotnet', 'APP_KIND', 'workflowApp', 'AzureWebJobsStorage__credential', 'managedIdentity', 'AzureWebJobsStorage__credentialType', 'managedIdentity', 'AzureWebJobsStorage__managedIdentityResourceId', parameters('managedIdentityId'), 'AzureWebJobsStorage__clientId', reference('identity').clientId, 'AzureWebJobsStorage__accountName', reference('storageAccount').outputs.name.value, 'AzureWebJobsSecretStorageType', 'files', 'WEBSITE_NODE_DEFAULT_VERSION', '~22', 'AzureFunctionsJobHost__extensionBundle__id', 'Microsoft.Azure.Functions.ExtensionBundle.Workflows', 'AzureFunctionsJobHost__extensionBundle__version', '[1.*, 2.0.0)', 'WORKFLOWS_SUBSCRIPTION_ID', subscription().subscriptionId, 'WORKFLOWS_RESOURCE_GROUP_NAME', resourceGroup().name, 'WORKFLOWS_LOCATION_NAME', parameters('location'), 'OFFICE365_CONNECTION_RUNTIME_URL', parameters('office365ConnectionRuntimeUrl'), 'AI_PROJECT_ENDPOINT', parameters('aiProjectEndpoint'), 'AI_FOUNDRY_NAME', parameters('aiFoundryName'), 'AI_PROJECT_NAME', parameters('aiProjectName'), 'AZURE_CLIENT_ID', ''), 'storageAccountResourceId', reference('storageAccount').outputs.resourceId.value, 'storageAccountUseIdentityAuthentication', true(), 'applicationInsightResourceId', parameters('applicationInsightResourceId'))), if(empty(parameters('myIpAddress')), createArray(), createArray(createObject('name', 'web', 'properties', createObject('ipSecurityRestrictions', createArray(createObject('action', 'Allow', 'description', 'Allow My IP Address', 'ipAddress', format('{0}/32', parameters('myIpAddress')), 'name', 'My IP Address', 'priority', 100), createObject('action', 'Allow', 'description', 'Allow VNet traffic (AI Foundry agents in same VNet)', 'ipAddress', parameters('vnetAddressSpace'), 'name', 'VNet Traffic', 'priority', 200), createObject('action', 'Allow', 'description', 'Allow Logic Apps Management (runtime operations)', 'tag', 'ServiceTag', 'ipAddress', 'LogicAppsManagement', 'name', 'LogicAppsManagement', 'priority', 300), createObject('action', 'Allow', 'description', 'Allow Azure Connectors (Office 365 callbacks)', 'tag', 'ServiceTag', 'ipAddress', 'AzureConnectors', 'name', 'AzureConnectors', 'priority', 400)), 'ipSecurityRestrictionsDefaultAction', 'Deny', 'scmIpSecurityRestrictionsDefaultAction', 'Deny', 'scmIpSecurityRestrictions', if(empty(parameters('myIpAddress')), createArray(), createArray(createObject('action', 'Allow', 'description', 'Allow My IP Address', 'ipAddress', format('{0}/32', parameters('myIpAddress')), 'name', 'My IP Address', 'priority', 100))))))))]"
                   },
                   "privateEndpoints": "[if(not(empty(parameters('privateEndpointSubnetResourceId'))), createObject('value', createArray(createObject('tags', createObject(), 'subnetResourceId', parameters('privateEndpointSubnetResourceId'), 'service', 'sites', 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', parameters('logicAppPrivateDnsZoneId'))))))), createObject('value', createArray()))]"
                 },

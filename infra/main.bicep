@@ -82,6 +82,10 @@ resource playwrightWorkspace 'Microsoft.LoadTestService/playwrightWorkspaces@202
 }
 
 // Role assignment for AI Foundry to access Playwright workspace
+// ⚠️  WARNING: FOR DEMO/DEVELOPMENT PURPOSES ONLY
+// This assigns the Contributor role, which grants full management access to the Playwright workspace.
+// Production environments should follow least privilege principle by using a custom role with only:
+//   - Microsoft.LoadTestService/PlaywrightWorkspaces/write
 resource playwrightRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(subscription().subscriptionId, resourceGroup().id, playwrightWorkspace.name, 'Contributor')
   scope: playwrightWorkspace
