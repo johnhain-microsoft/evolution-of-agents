@@ -40,7 +40,7 @@ $md5 = [System.Security.Cryptography.MD5]::Create()
 $hashBytes = $md5.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("$CONNECTION_ID$SYSTEM_IDENTITY_ID"))
 $POLICY_NAME = [System.BitConverter]::ToString($hashBytes).Replace("-", "").ToLower()
 
-$body = @{
+$bodyJson = @{
   properties = @{
     principal = @{
       type = "ActiveDirectory"
@@ -50,14 +50,21 @@ $body = @{
       }
     }
   }
-} | ConvertTo-Json -Depth 10
+} | ConvertTo-Json -Depth 10 -Compress
+
+# Write body to temp file for az rest
+$tempFile = [System.IO.Path]::GetTempFileName()
+$bodyJson | Out-File -FilePath $tempFile -Encoding utf8 -NoNewline
 
 $apiUrl = "https://management.azure.com$CONNECTION_ID/accessPolicies/$POLICY_NAME" + "?api-version=2016-06-01"
 
 az rest --method put `
   --url $apiUrl `
   --headers "Content-Type=application/json" `
-  --body $body
+  --body "@$tempFile"
+
+# Clean up temp file
+Remove-Item $tempFile -ErrorAction SilentlyContinue
 
 Write-Host ""
 Write-Host "[SUCCESS] Successfully configured Office 365 connection access policy" -ForegroundColor Green
