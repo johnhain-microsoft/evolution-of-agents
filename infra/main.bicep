@@ -105,6 +105,7 @@ module foundry './modules/ai/ai-foundry.bicep' = {
     appInsightsName: logAnalytics.outputs.applicationInsightsName
     publicNetworkAccess: 'Enabled'
     agentSubnetId: vnet.outputs.agentSubnetId // Use the first agent subnet
+    logicAppsSubnetId: vnet.outputs.logicAppsSubnetId // Allow Logic Apps to create agents
     myIpAddress: myIpAddress
     playwrightWorkspaceId: playwrightWorkspace.id
     playwrightWorkspaceName: playwrightWorkspace.name

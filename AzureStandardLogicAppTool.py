@@ -75,31 +75,7 @@ class AzureStandardLogicAppTool:
             if v.get("nullable", False) is False:
                 required.append(k)
 
-        # Query parameters from Logic Apps callback URL
-        # These will be defined as parameters so Azure AI Agents can append them properly
-        # Extract default values from the callback URL
-        parameters = [
-            {
-                "name": "api-version",
-                "in": "query",
-                "required": False,
-                "schema": {"type": "string", "default": "2022-05-01"},
-            },
-            {
-                "name": "sp",
-                "in": "query",
-                "required": False,
-                "schema": {"type": "string"},
-            },
-            {
-                "name": "sv",
-                "in": "query",
-                "required": False,
-                "schema": {"type": "string", "default": "1.0"},
-            },
-        ]
-
-        # Use /invoke as the path, as in the example
+        # Use /invoke as the path (will be replaced with / and full URL in server)
         # Tool name must match pattern ^[a-zA-Z0-9_]+ (only alphanumeric and underscores)
         tool_name = workflow_name.replace("-", "_").replace(" ", "_")
         # OperationId can use hyphens for uniqueness and readability
@@ -288,30 +264,22 @@ def create_logic_app_tools(
         callback_url = logic_app_tool.get_workflow_callback_url(
             logic_app_name, workflow_name, trigger_name
         )
-        # print(f"Found Callback URL for workflow '{workflow_name}'")
 
-        # Parse callback URL - extract query params for use as parameter defaults
         parsed_callback = urlparse(callback_url)
         query_params = parse_qs(parsed_callback.query)
         sig = query_params.get("sig", [None])[0]
-        sp_value = query_params.get("sp", [None])[0]
 
-        # Update sp parameter default with actual value from callback URL
-        for param in openapi_spec["paths"]["/invoke"]["post"]["parameters"]:
-            if param["name"] == "sp" and sp_value:
-                param["schema"]["default"] = sp_value
+        url_without_sig = f"{parsed_callback.scheme}://{parsed_callback.netloc}{parsed_callback.path}"
+        params_without_sig = "&".join([f"{k}={v[0]}" for k, v in query_params.items() if k != "sig"])
+        full_url_without_sig = f"{url_without_sig}?{params_without_sig}" if params_without_sig else url_without_sig
 
-        # Server URL should NOT include /invoke or query params
-        # Path will be /invoke, and query params will be appended by Azure AI Agents
-        # Remove /invoke from the end of the path
-        base_url_path = parsed_callback.path
-        if base_url_path.endswith("/invoke"):
-            base_url_path = base_url_path[: -len("/invoke")]
-
-        base_callback_url = f"{parsed_callback.scheme}://{parsed_callback.netloc}{base_url_path}"
-
-        # update openapi spec server URL (without query params)
-        openapi_spec["servers"] = [{"url": base_callback_url}]
+        openapi_spec["servers"] = [{"url": full_url_without_sig}]
+        openapi_spec["paths"] = {
+            "/": {
+                "post": openapi_spec["paths"]["/invoke"]["post"]
+            }
+        }
+        openapi_spec["paths"]["/"]["post"]["parameters"] = []
         connection_name = f"openapi-logicapp-{logic_app_name}-{workflow_name}"
 
         # there so SDK for connections - need to use REST API

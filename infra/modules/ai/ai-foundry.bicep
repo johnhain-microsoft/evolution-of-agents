@@ -20,6 +20,8 @@ param managedIdentityId string = ''
 param playwrightWorkspaceId string = ''
 param playwrightWorkspaceName string = ''
 param playwrightLocation string = location
+@description('Logic Apps subnet ID to allow agent provisioning from Logic App workflows')
+param logicAppsSubnetId string = ''
 
 // --------------------------------------------------------------------------------------------------------------
 // Variables
@@ -100,7 +102,14 @@ resource account 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = if 
               value: myIpAddress
             }
           ]
-      virtualNetworkRules: []
+      virtualNetworkRules: empty(logicAppsSubnetId)
+        ? []
+        : [
+            {
+              id: logicAppsSubnetId
+              ignoreMissingVnetServiceEndpoint: false
+            }
+          ]
     }
     networkInjections: (!empty(agentSubnetId)
       ? [
