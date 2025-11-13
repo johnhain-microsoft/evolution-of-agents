@@ -56,6 +56,7 @@ $apiUrl = "https://management.azure.com$CONNECTION_ID/accessPolicies/$POLICY_NAM
 
 az rest --method put `
   --url $apiUrl `
+  --headers "Content-Type=application/json" `
   --body $body
 
 Write-Host ""

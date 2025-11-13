@@ -42,6 +42,7 @@ POLICY_NAME=$(echo -n "$CONNECTION_ID$SYSTEM_IDENTITY_ID" | md5sum | cut -d' ' -
 
 az rest --method put \
   --url "https://management.azure.com${CONNECTION_ID}/accessPolicies/${POLICY_NAME}?api-version=2016-06-01" \
+  --headers "Content-Type=application/json" \
   --body "{
     \"properties\": {
       \"principal\": {
