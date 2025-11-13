@@ -52,8 +52,10 @@ $body = @{
   }
 } | ConvertTo-Json -Depth 10
 
+$apiUrl = "https://management.azure.com$CONNECTION_ID/accessPolicies/$POLICY_NAME" + "?api-version=2016-06-01"
+
 az rest --method put `
-  --url "https://management.azure.com$CONNECTION_ID/accessPolicies/$POLICY_NAME?api-version=2016-06-01" `
+  --url $apiUrl `
   --body $body
 
 Write-Host ""
