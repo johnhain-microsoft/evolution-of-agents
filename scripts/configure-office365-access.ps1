@@ -56,8 +56,9 @@ az rest --method put `
   --url "https://management.azure.com$CONNECTION_ID/accessPolicies/$POLICY_NAME?api-version=2016-06-01" `
   --body $body
 
-Write-Host "`n✓ Successfully configured Office 365 connection access policy" -ForegroundColor Green
+Write-Host ""
+Write-Host "[SUCCESS] Successfully configured Office 365 connection access policy" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Cyan
-Write-Host "1. Test your Logic App workflows"
-Write-Host "2. Email actions should now work without permission errors"
+Write-Host "  1. Test your Logic App workflows" -ForegroundColor White
+Write-Host "  2. Email actions should now work without permission errors" -ForegroundColor White
