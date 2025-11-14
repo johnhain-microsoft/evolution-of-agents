@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.38.33.27573",
-      "templateHash": "14376115259393396530"
+      "templateHash": "5683150206307327303"
     }
   },
   "parameters": {
@@ -4111,13 +4111,17 @@
           "deployments": {
             "value": [
               {
-                "name": "gpt-35-turbo",
+                "name": "gpt-4o",
                 "properties": {
                   "model": {
                     "format": "OpenAI",
-                    "name": "gpt-35-turbo",
-                    "version": "0125"
+                    "name": "gpt-4o",
+                    "version": "2024-11-20"
                   }
+                },
+                "sku": {
+                  "name": "GlobalStandard",
+                  "capacity": 20
                 }
               },
               {

@@ -3,6 +3,19 @@
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "contentVersion": "1.0.0.0",
         "actions": {
+            "Get_calendars": {
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "referenceName": "office365"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/datasets/calendars/tables"
+                },
+                "runAfter": {}
+            },
             "Get_calendar_view": {
                 "type": "ApiConnection",
                 "inputs": {
@@ -12,15 +25,19 @@
                         }
                     },
                     "method": "get",
-                    "path": "/v2/calendars/events",
+                    "path": "/datasets/calendars/v3/tables/@{encodeURIComponent(first(body('Get_calendars')?['value'])?['id'])}/calendarview",
                     "queries": {
-                        "$filter": "start/dateTime ge '@{triggerBody()?['startDateTime']}' and end/dateTime le '@{triggerBody()?['endDateTime']}'",
+                        "startDateTime": "@{triggerBody()?['startDateTime']}",
+                        "endDateTime": "@{triggerBody()?['endDateTime']}",
                         "$orderby": "start/dateTime",
                         "$top": "@{coalesce(triggerBody()?['maxResults'], 10)}"
-                    },
-                    "operationId": "GetEventsCalendarViewV3"
+                    }
                 },
-                "runAfter": {}
+                "runAfter": {
+                    "Get_calendars": [
+                        "Succeeded"
+                    ]
+                }
             },
             "Response": {
                 "type": "Response",
