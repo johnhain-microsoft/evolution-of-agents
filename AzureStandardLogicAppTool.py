@@ -279,18 +279,17 @@ def create_logic_app_tools(
         # The OpenAPI spec defines path as "/", so server URL should include the full path
         base_url_path = parsed_callback.path
 
-        # Build query string with all parameters EXCEPT sig (which is handled by security scheme)
+        # Build query string with all parameters INCLUDING sig
         # URL-encode each parameter value
         query_parts = []
         for param_name, param_values in query_params.items():
-            if param_name != "sig":
-                for value in param_values:
-                    # URL-encode the parameter value
-                    encoded_value = quote(value, safe='')
-                    query_parts.append(f"{param_name}={encoded_value}")
+            for value in param_values:
+                # URL-encode the parameter value
+                encoded_value = quote(value, safe='')
+                query_parts.append(f"{param_name}={encoded_value}")
 
-        # Construct server URL with query parameters embedded
-        # Final URL will be: server_url + "&sig=..." from security scheme
+        # Construct server URL with all query parameters (including sig) embedded
+        # This creates the complete callback URL directly in the server URL
         base_callback_url = f"{parsed_callback.scheme}://{parsed_callback.netloc}{base_url_path}"
         if query_parts:
             base_callback_url += "?" + "&".join(query_parts)
