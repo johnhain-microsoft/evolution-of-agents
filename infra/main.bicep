@@ -112,13 +112,17 @@ module foundry './modules/ai/ai-foundry.bicep' = {
     playwrightLocation: playwrightLocation
     deployments: [
       {
-        name: 'gpt-35-turbo'
+        name: 'gpt-4o'
         properties: {
           model: {
             format: 'OpenAI'
-            name: 'gpt-35-turbo'
-            version: '0125'
+            name: 'gpt-4o'
+            version: '2024-11-20'
           }
+        }
+        sku: {
+          name: 'GlobalStandard'
+          capacity: 20
         }
       }
       {
