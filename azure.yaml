@@ -54,6 +54,7 @@ hooks:
       run: |
         ./scripts/populate_env.ps1
         ./infra/scripts/add-playwright-connection.ps1
+        ./infra/scripts/grant-graph-permissions.ps1
       interactive: false
       continueOnError: false
     posix:
@@ -62,5 +63,7 @@ hooks:
         ./scripts/populate_env.sh
         chmod +x ./infra/scripts/add-playwright-connection.sh
         ./infra/scripts/add-playwright-connection.sh
+        chmod +x ./infra/scripts/grant-graph-permissions.sh
+        ./infra/scripts/grant-graph-permissions.sh
       interactive: false
       continueOnError: false

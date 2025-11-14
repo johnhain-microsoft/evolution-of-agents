@@ -3,43 +3,39 @@
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "contentVersion": "1.0.0.0",
         "actions": {
-            "Get_calendars": {
-                "type": "ApiConnection",
-                "inputs": {
-                    "host": {
-                        "connection": {
-                            "referenceName": "office365"
-                        }
-                    },
-                    "method": "get",
-                    "path": "/datasets/calendars/tables"
-                },
-                "runAfter": {}
-            },
             "Create_event": {
-                "type": "ApiConnection",
+                "type": "Http",
                 "inputs": {
-                    "host": {
-                        "connection": {
-                            "referenceName": "office365"
-                        }
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/v1.0/me/calendar/events",
+                    "authentication": {
+                        "type": "ManagedServiceIdentity",
+                        "audience": "https://graph.microsoft.com"
                     },
-                    "method": "post",
-                    "path": "/datasets/calendars/v4/tables/@{encodeURIComponent(first(body('Get_calendars')?['value'])?['id'])}/items",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
                     "body": {
                         "subject": "@{triggerBody()?['subject']}",
-                        "start": "@{triggerBody()?['start']}",
-                        "end": "@{triggerBody()?['end']}",
-                        "body": "@{triggerBody()?['body']}",
-                        "location": "@{triggerBody()?['location']}",
+                        "start": {
+                            "dateTime": "@{triggerBody()?['start']}",
+                            "timeZone": "UTC"
+                        },
+                        "end": {
+                            "dateTime": "@{triggerBody()?['end']}",
+                            "timeZone": "UTC"
+                        },
+                        "body": {
+                            "contentType": "Text",
+                            "content": "@{triggerBody()?['body']}"
+                        },
+                        "location": {
+                            "displayName": "@{triggerBody()?['location']}"
+                        },
                         "attendees": "@{triggerBody()?['attendees']}"
                     }
                 },
-                "runAfter": {
-                    "Get_calendars": [
-                        "Succeeded"
-                    ]
-                }
+                "runAfter": {}
             },
             "Response": {
                 "type": "Response",
