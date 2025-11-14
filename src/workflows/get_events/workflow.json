@@ -17,10 +17,10 @@
                         "$filter": "start/dateTime ge '@{triggerBody()?['startDateTime']}' and end/dateTime le '@{triggerBody()?['endDateTime']}'",
                         "$orderby": "start/dateTime",
                         "$top": "@{coalesce(triggerBody()?['maxResults'], 10)}"
-                    }
+                    },
+                    "operationId": "GetEventsCalendarViewV3"
                 },
-                "runAfter": {},
-                "operationId": "GetEventsCalendarViewV3"
+                "runAfter": {}
             },
             "Response": {
                 "type": "Response",

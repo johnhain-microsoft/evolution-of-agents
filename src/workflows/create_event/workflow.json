@@ -20,10 +20,10 @@
                         "body": "@{triggerBody()?['body']}",
                         "location": "@{triggerBody()?['location']}",
                         "attendees": "@{triggerBody()?['attendees']}"
-                    }
+                    },
+                    "operationId": "V4CalendarPostItem"
                 },
-                "runAfter": {},
-                "operationId": "V4CalendarPostItem"
+                "runAfter": {}
             },
             "Response": {
                 "type": "Response",
