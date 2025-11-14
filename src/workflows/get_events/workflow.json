@@ -3,17 +3,41 @@
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "contentVersion": "1.0.0.0",
         "actions": {
-            "Get_calendar_view": {
-                "type": "Http",
+            "Get_calendars": {
+                "type": "ApiConnection",
                 "inputs": {
-                    "method": "GET",
-                    "uri": "https://graph.microsoft.com/v1.0/me/calendar/calendarView?startDateTime=@{triggerBody()?['startDateTime']}&endDateTime=@{triggerBody()?['endDateTime']}&$orderby=start/dateTime&$top=@{coalesce(triggerBody()?['maxResults'], 10)}",
-                    "authentication": {
-                        "type": "ManagedServiceIdentity",
-                        "audience": "https://graph.microsoft.com"
-                    }
+                    "host": {
+                        "connection": {
+                            "referenceName": "office365"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/datasets/calendars/tables"
                 },
                 "runAfter": {}
+            },
+            "Get_calendar_view": {
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "referenceName": "office365"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/datasets/calendars/v3/tables/@{encodeURIComponent(first(body('Get_calendars')?['value'])?['id'])}/calendarview",
+                    "queries": {
+                        "startDateTime": "@{triggerBody()?['startDateTime']}",
+                        "endDateTime": "@{triggerBody()?['endDateTime']}",
+                        "$orderby": "start/dateTime",
+                        "$top": "@{coalesce(triggerBody()?['maxResults'], 10)}"
+                    }
+                },
+                "runAfter": {
+                    "Get_calendars": [
+                        "Succeeded"
+                    ]
+                }
             },
             "Response": {
                 "type": "Response",
