@@ -59,7 +59,7 @@ try {
 
     az rest --method POST `
         --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$graphSpId/appRoleAssignedTo" `
-        --body $bodyRead `
+        --body `"$bodyRead`" `
         --headers "Content-Type=application/json" | Out-Null
     Write-Host "✓ Granted Calendars.Read permission" -ForegroundColor Green
 } catch {
@@ -76,7 +76,7 @@ try {
 
     az rest --method POST `
         --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$graphSpId/appRoleAssignedTo" `
-        --body $bodyReadWrite `
+        --body `"$bodyReadWrite`" `
         --headers "Content-Type=application/json" | Out-Null
     Write-Host "✓ Granted Calendars.ReadWrite permission" -ForegroundColor Green
 } catch {
